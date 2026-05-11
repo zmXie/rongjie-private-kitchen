@@ -98,12 +98,56 @@ async function setupInfrastructure() {
   console.log('   3. 执行: npm run deploy\n');
 }
 
+async function deployFrontend() {
+  console.log('\n========================================');
+  console.log('   蓉姐私房菜 - 前端部署');
+  console.log('========================================\n');
+
+  console.log('\n=== 1. 构建前端 ===');
+  if (!run('npm run build', webDir)) {
+    process.exit(1);
+  }
+
+  console.log('\n=== 2. 部署前端 ===');
+  if (!run('npx wrangler pages deploy dist --project-name=rongjie-private-kitchen', webDir)) {
+    process.exit(1);
+  }
+
+  console.log('\n========================================');
+  console.log('   ✅ 前端部署完成！');
+  console.log('========================================\n');
+}
+
+async function deployBackend() {
+  console.log('\n========================================');
+  console.log('   蓉姐私房菜 - 后端部署');
+  console.log('========================================\n');
+
+  const config = checkWranglerConfig();
+  console.log('📋  配置检查:');
+  console.log(`   ${config.hasDatabaseId ? '✅' : '❌'} database_id`);
+  console.log(`   ${config.hasPublicR2Url ? '✅' : '❌'} PUBLIC_R2_URL`);
+
+  if (!config.hasDatabaseId || !config.hasPublicR2Url) {
+    console.log('\n❌  配置不完整，请先运行: npm run deploy -- --init\n');
+    process.exit(1);
+  }
+
+  console.log('\n=== 部署 API ===');
+  if (!run('npm run deploy', apiDir)) {
+    process.exit(1);
+  }
+
+  console.log('\n========================================');
+  console.log('   ✅ 后端部署完成！');
+  console.log('========================================\n');
+}
+
 async function deploy() {
   console.log('\n========================================');
   console.log('   蓉姐私房菜 - 一键部署');
   console.log('========================================\n');
 
-  // 检查配置
   const config = checkWranglerConfig();
   console.log('📋  配置检查:');
   console.log(`   ${config.hasDatabaseId ? '✅' : '❌'} database_id`);
@@ -142,14 +186,20 @@ async function main() {
 
   if (args.includes('--init') || args.includes('-i')) {
     await setupInfrastructure();
+  } else if (args.includes('--frontend') || args.includes('-f')) {
+    await deployFrontend();
+  } else if (args.includes('--backend') || args.includes('-b')) {
+    await deployBackend();
   } else if (args.includes('--help') || args.includes('-h')) {
     console.log(`
 📦 蓉姐私房菜部署脚本
 
 用法:
-  npm run deploy           一键部署
-  npm run deploy -- --init 首次初始化 + 部署
-  npm run deploy -- --help  显示帮助
+  npm run deploy              一键部署（前端+后端）
+  npm run deploy -- --frontend  仅部署前端
+  npm run deploy -- --backend  仅部署后端
+  npm run deploy -- --init     首次初始化 + 部署
+  npm run deploy -- --help      显示帮助
 
 首次使用请按顺序执行:
   1. npm run deploy -- --init   # 初始化基础设施

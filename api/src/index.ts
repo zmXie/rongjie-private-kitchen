@@ -15,8 +15,6 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use('/*', cors());
 
-const R2_URL = 'https://images.rongjie-kitchen.com';
-
 const successResponse = <T>(data: T) => ({
   code: 0,
   message: 'success',
@@ -207,6 +205,24 @@ app.delete('/api/dishes/:id', adminAuth, async c => {
   return c.json(successResponse({ deleted: true }));
 });
 
+// R2 URL handler - serve images directly from R2
+app.get('/r2/:filename', async c => {
+  const filename = c.req.param('filename');
+  const bucket = c.env.IMAGES;
+
+  const object = await bucket.get(filename);
+
+  if (!object) {
+    return c.json(errorResponse('Image not found'), 404);
+  }
+
+  const headers = new Headers();
+  headers.set('Content-Type', object.httpMetadata?.contentType || 'application/octet-stream');
+  headers.set('Cache-Control', 'public, max-age=31536000');
+
+  return new Response(object.body, { headers });
+});
+
 // Image upload API
 app.post('/api/upload', adminAuth, async c => {
   const formData = await c.req.formData();
@@ -233,7 +249,7 @@ app.post('/api/upload', adminAuth, async c => {
   const bucket = c.env.IMAGES;
   await bucket.put(filename, file);
 
-  const imageUrl = `${R2_URL}/${filename}`;
+  const imageUrl = `https://rongjie-api.741937337.workers.dev/r2/${filename}`;
 
   return c.json(successResponse({ url: imageUrl }), 201);
 });

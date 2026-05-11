@@ -7,6 +7,8 @@
     "build": "npm run build --prefix api",
     "deploy": "node deploy.js",
     "deploy:init": "node deploy.js --init",
+    "deploy:web": "node deploy.js --frontend",
+    "deploy:api": "node deploy.js --backend",
     "dev:web": "npm run dev --prefix web",
     "dev:api": "npm run dev --prefix api"
   },
