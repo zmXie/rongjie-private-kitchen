@@ -58,6 +58,11 @@ const adminAuth = async (c: any, next: () => Promise<void>) => {
   await next();
 };
 
+// Admin secret validation (no data change)
+app.get('/api/admin/check', adminAuth, c => {
+  return c.json(successResponse({ valid: true }));
+});
+
 // Categories API
 app.get('/api/categories', async c => {
   const db = c.env.DB;
@@ -249,7 +254,7 @@ app.post('/api/upload', adminAuth, async c => {
   const bucket = c.env.IMAGES;
   await bucket.put(filename, file);
 
-  const imageUrl = `https://rongjie-api.741937337.workers.dev/r2/${filename}`;
+  const imageUrl = `https://rongjie-private-kitchen.pages.dev/r2/${filename}`;
 
   return c.json(successResponse({ url: imageUrl }), 201);
 });

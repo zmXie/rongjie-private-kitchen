@@ -129,10 +129,11 @@ function handleLogout() {
 }
 
 async function handleLogin() {
-  const secret = await adminUtils.showLoginPrompt();
-  if (secret) {
-    adminUtils.login(secret);
-    adminStore.init();
+  const result = await adminUtils.showLoginPrompt();
+  if (result.error) {
+    showToast(result.error);
+  } else if (result.secret) {
+    adminStore.setAdmin(true);
   }
 }
 </script>

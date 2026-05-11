@@ -12,9 +12,12 @@ export const useAdminStore = defineStore('admin', () => {
       localStorage.setItem('admin-secret', adminParam);
       isAdmin.value = true;
     } else {
-      const stored = localStorage.getItem('admin-secret');
-      isAdmin.value = !!stored;
+      isAdmin.value = false;
     }
+  }
+
+  function setAdmin(value: boolean) {
+    isAdmin.value = value;
   }
 
   function logout() {
@@ -29,5 +32,6 @@ export const useAdminStore = defineStore('admin', () => {
     isAdmin,
     init,
     logout,
+    setAdmin,
   };
 });
