@@ -10,6 +10,7 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'upload', url: string): void;
+  (e: 'remove'): void;
 }>();
 
 const loading = ref(false);
@@ -22,6 +23,12 @@ watch(() => props.imageUrl, (newUrl) => {
 
 function handleClick() {
   fileInput.value?.click();
+}
+
+function handleRemove(e: Event) {
+  e.stopPropagation();
+  previewUrl.value = '';
+  emit('remove');
 }
 
 async function handleFileChange(e: Event) {
@@ -72,6 +79,7 @@ async function handleFileChange(e: Event) {
       <div v-if="loading" class="loading-overlay">
         <span>上传中...</span>
       </div>
+      <div class="remove-btn" @click="handleRemove">×</div>
     </div>
   </div>
 </template>
@@ -133,5 +141,21 @@ async function handleFileChange(e: Event) {
   border-radius: 8px;
   color: #fff;
   font-size: 12px;
+}
+
+.remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
 }
 </style>

@@ -124,6 +124,7 @@ function handleSave() {
             :imageUrl="form.image_url"
             :isAdmin="isAdmin"
             @upload="handleImageUploaded"
+            @remove="form.image_url = ''"
           />
         </div>
       </div>

@@ -15,7 +15,7 @@ function run(command, dir, options = {}) {
       cwd: dir,
       stdio: options.silent ? 'pipe' : 'inherit',
       shell: true,
-      encoding: 'utf-8',
+      encoding: 'utf-8'
     });
     return true;
   } catch (error) {
@@ -43,7 +43,7 @@ function checkWranglerConfig() {
 
   return {
     hasDatabaseId: databaseIdMatch && databaseIdMatch[1] && databaseIdMatch[1] !== 'your-database-id-here',
-    hasPublicR2Url: publicR2UrlMatch && publicR2UrlMatch[1] && !publicR2UrlMatch[1].includes('your-account'),
+    hasPublicR2Url: publicR2UrlMatch && publicR2UrlMatch[1] && !publicR2UrlMatch[1].includes('your-account')
   };
 }
 
