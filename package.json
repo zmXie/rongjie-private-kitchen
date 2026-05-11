@@ -1,0 +1,20 @@
+{
+  "name": "rongjie-private-kitchen",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix api",
+    "build": "npm run build --prefix api",
+    "deploy": "node deploy.js",
+    "deploy:init": "node deploy.js --init",
+    "dev:web": "npm run dev --prefix web",
+    "dev:api": "npm run dev --prefix api"
+  },
+  "workspaces": [
+    "web",
+    "api"
+  ],
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

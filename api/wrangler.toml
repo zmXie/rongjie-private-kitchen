@@ -1,0 +1,18 @@
+name = "rongjie-api"
+main = "src/index.ts"
+compatibility_date = "2024-06-14"
+
+[site]
+bucket = "../web/dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rongjie-db"
+database_id = "3d11f0d9-1117-4845-9df4-d809869fa455"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "rongjie-images"
+
+[vars]
+PUBLIC_R2_URL = "https://34f1cad1635645bd1bb214fb82f341bd.r2.cloudflarestorage.com/rongjie-images"
