@@ -3,7 +3,7 @@ import type { Dish } from '@/types';
 
 export const getDishes = (categoryId?: number) => {
   const params = categoryId ? { category_id: categoryId } : {};
-  return api.get<never, Dish[]>('/api/dishes', { params });
+  return api.get<never, Dish[]>('/dishes', { params });
 };
 
 export const createDish = (data: {
@@ -14,18 +14,18 @@ export const createDish = (data: {
   image_url?: string;
   sort?: number;
   status?: number;
-}) => api.post<never, Dish>('/api/dishes', data);
+}) => api.post<never, Dish>('/dishes', data);
 
 export const updateDish = (id: number, data: Partial<Dish>) =>
-  api.put<never, Dish>(`/api/dishes/${id}`, data);
+  api.put<never, Dish>(`/dishes/${id}`, data);
 
 export const deleteDish = (id: number) =>
-  api.delete<never, { deleted: boolean }>(`/api/dishes/${id}`);
+  api.delete<never, { deleted: boolean }>(`/dishes/${id}`);
 
 export const uploadImage = (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  return api.post<never, { url: string }>('/api/upload', formData, {
+  return api.post<never, { url: string }>('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };

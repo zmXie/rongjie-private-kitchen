@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import api from '@/api';
 
 export function useAdmin() {
   function init() {
@@ -7,13 +7,10 @@ export function useAdmin() {
 
   async function validateSecret(secret: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_URL}/api/admin/check`, {
-        method: 'GET',
-        headers: {
-          'x-admin-secret': secret,
-        },
+      await api.get('/admin/check', {
+        headers: { 'x-admin-secret': secret },
       });
-      return response.ok;
+      return true;
     } catch {
       return false;
     }
