@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 const app = new Hono();
 app.use('/*', cors());
-const R2_URL = 'https://images.rongjie-kitchen.com';
+const R2_URL = 'https://pub-7c849d4ee1514cc9b7158152bf0a202b.r2.dev';
 const successResponse = data => ({
   code: 0,
   message: 'success',
@@ -173,7 +173,12 @@ app.post('/api/upload', adminAuth, async c => {
   const ext = file.name.split('.').pop() || 'jpg';
   const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
   const bucket = c.env.IMAGES;
-  await bucket.put(filename, file);
+  await bucket.put(filename, file, {
+    httpMetadata: {
+      cacheControl: 'public, max-age=31536000, immutable',
+      contentType: file.type,
+    },
+  });
   const imageUrl = `${R2_URL}/${filename}`;
   return c.json(successResponse({ url: imageUrl }), 201);
 });

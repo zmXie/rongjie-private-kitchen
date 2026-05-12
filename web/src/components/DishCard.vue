@@ -16,7 +16,7 @@ const emit = defineEmits<{
 <template>
   <div class="dish-card">
     <div class="dish-thumb">
-      <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="dish-image" />
+      <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="dish-image" loading="lazy" decoding="async" />
       <div v-else class="dish-placeholder">暂无图片</div>
     </div>
     <div class="dish-content">

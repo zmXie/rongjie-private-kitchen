@@ -15,4 +15,4 @@ binding = "IMAGES"
 bucket_name = "rongjie-images"
 
 [vars]
-PUBLIC_R2_URL = "https://34f1cad1635645bd1bb214fb82f341bd.r2.cloudflarestorage.com/rongjie-images"
+PUBLIC_R2_URL = "https://pub-7c849d4ee1514cc9b7158152bf0a202b.r2.dev"

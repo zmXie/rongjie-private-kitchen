@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import imageCompression from 'browser-image-compression';
 import { uploadImage } from '@/api/dishes';
 
 interface Props {
@@ -17,9 +18,12 @@ const loading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const previewUrl = ref(props.imageUrl || '');
 
-watch(() => props.imageUrl, (newUrl) => {
-  previewUrl.value = newUrl || '';
-});
+watch(
+  () => props.imageUrl,
+  newUrl => {
+    previewUrl.value = newUrl || '';
+  }
+);
 
 function handleClick() {
   fileInput.value?.click();
@@ -31,16 +35,22 @@ function handleRemove(e: Event) {
   emit('remove');
 }
 
+async function compressImage(file: File): Promise<File> {
+  if (file.type === 'image/gif') return file;
+  const compressed = await imageCompression(file, {
+    maxSizeMB: 0.5,
+    maxWidthOrHeight: 1200,
+    useWebWorker: true,
+    fileType: 'image/webp',
+    initialQuality: 0.8
+  });
+  return new File([compressed], file.name.replace(/\.\w+$/, '.webp'), { type: 'image/webp' });
+}
+
 async function handleFileChange(e: Event) {
   const target = e.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
-
-  // Check file size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('图片大小不能超过5MB');
-    return;
-  }
 
   // Check file type
   if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
@@ -48,9 +58,16 @@ async function handleFileChange(e: Event) {
     return;
   }
 
+  // Check file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('图片大小不能超过5MB');
+    return;
+  }
+
   loading.value = true;
   try {
-    const res = await uploadImage(file);
+    const compressed = await compressImage(file);
+    const res = await uploadImage(compressed);
     previewUrl.value = res.url;
     emit('upload', res.url);
   } catch (err: any) {
@@ -63,13 +80,7 @@ async function handleFileChange(e: Event) {
 
 <template>
   <div class="image-uploader">
-    <input
-      ref="fileInput"
-      type="file"
-      accept="image/*"
-      style="display: none"
-      @change="handleFileChange"
-    />
+    <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleFileChange" />
     <div v-if="!previewUrl" class="upload-placeholder" @click="handleClick">
       <span class="upload-icon">+</span>
       <span class="upload-text">上传图片</span>
