@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import imageCompression from 'browser-image-compression';
+import { Loading as VanLoading } from 'vant';
 import { uploadImage } from '@/api/dishes';
 
 interface Props {
@@ -80,17 +81,17 @@ async function handleFileChange(e: Event) {
 
 <template>
   <div class="image-uploader">
-    <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleFileChange" />
-    <div v-if="!previewUrl" class="upload-placeholder" @click="handleClick">
+    <input ref="fileInput" type="file" accept="image/*" style="display: none" :disabled="loading" @change="handleFileChange" />
+    <div v-if="!previewUrl" class="upload-placeholder" :class="{ disabled: loading }" @click="!loading && handleClick()">
       <span class="upload-icon">+</span>
       <span class="upload-text">上传图片</span>
     </div>
     <div v-else class="preview-container">
       <img :src="previewUrl" alt="preview" class="preview-image" />
       <div v-if="loading" class="loading-overlay">
-        <span>上传中...</span>
+        <VanLoading type="spinner" color="#fff" size="20" />
       </div>
-      <div class="remove-btn" @click="handleRemove">×</div>
+      <div v-if="!loading" class="remove-btn" @click="handleRemove">×</div>
     </div>
   </div>
 </template>
@@ -99,7 +100,7 @@ async function handleFileChange(e: Event) {
 .image-uploader {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-md);
 }
 
 .upload-placeholder {
@@ -109,21 +110,26 @@ async function handleFileChange(e: Event) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f7f8fa;
-  border-radius: 8px;
-  border: 1px dashed #dcdee0;
+  background: var(--color-bg-input);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border);
   cursor: pointer;
+}
+
+.upload-placeholder.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .upload-icon {
   font-size: 24px;
-  color: #969799;
+  color: var(--color-text-placeholder);
 }
 
 .upload-text {
-  font-size: 12px;
-  color: #969799;
-  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-placeholder);
+  margin-top: var(--space-xs);
 }
 
 .preview-container {
@@ -136,7 +142,7 @@ async function handleFileChange(e: Event) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .loading-overlay {
@@ -149,9 +155,7 @@ async function handleFileChange(e: Event) {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 12px;
+  border-radius: var(--radius-sm);
 }
 
 .remove-btn {
@@ -161,7 +165,7 @@ async function handleFileChange(e: Event) {
   width: 20px;
   height: 20px;
   background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  color: var(--color-text-inverse);
   border-radius: 50%;
   display: flex;
   align-items: center;

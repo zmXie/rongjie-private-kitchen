@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { showToast, showConfirmDialog } from 'vant';
+import { useRouter } from 'vue-router';
+import { showToast, showConfirmDialog, NavBar, Tab, Tabs, Button as VanButton, Empty as VanEmpty } from 'vant';
 import { useCategoryStore } from '@/stores/categories';
 import { useDishStore } from '@/stores/dishes';
 import { useAdminStore } from '@/stores/admin';
 import DishCard from '@/components/DishCard.vue';
 import DishEditor from '@/components/DishEditor.vue';
 import CategoryEditor from '@/components/CategoryEditor.vue';
-import { useAdmin } from '@/composables/useAdmin';
+import LoginDialog from '@/components/LoginDialog.vue';
+import type { Dish } from '@/types';
 
+const router = useRouter();
 const categoryStore = useCategoryStore();
 const dishStore = useDishStore();
 const adminStore = useAdminStore();
-const adminUtils = useAdmin();
 
-const activeCategoryId = ref<number | null>(null);
+const activeCategoryId = ref<number | string | undefined>(undefined);
 const showDishEditor = ref(false);
 const showCategoryEditor = ref(false);
+const showLoginDialog = ref(false);
 const editingDish = ref<any>(null);
 const editingCategory = ref<any>(null);
 
 onMounted(async () => {
-  adminStore.init();
+  await adminStore.init();
   await categoryStore.fetchCategories();
   await dishStore.fetchDishes();
   if (categoryStore.categories.length > 0) {
@@ -33,11 +36,16 @@ const isAdmin = computed(() => adminStore.isAdmin);
 
 const currentDishes = computed(() => {
   if (!activeCategoryId.value) return [];
-  return dishStore.getDishesByCategory(activeCategoryId.value);
+  return dishStore.getDishesByCategory(Number(activeCategoryId.value));
+});
+
+const activeCategory = computed(() => {
+  if (!activeCategoryId.value) return null;
+  return categoryStore.categories.find(c => c.id === Number(activeCategoryId.value));
 });
 
 function onCategoryChange(name: string | number) {
-  activeCategoryId.value = name as number;
+  activeCategoryId.value = typeof name === 'string' ? Number(name) : name;
 }
 
 function handleAddDish() {
@@ -54,7 +62,7 @@ async function handleDeleteDish(dish: any) {
   try {
     await showConfirmDialog({
       title: '确认删除',
-      message: `确定要删除菜品「${dish.name}」吗？`,
+      message: `确定要删除菜品「${dish.name}」吗？`
     });
     await dishStore.removeDish(dish.id);
     showToast('删除成功');
@@ -83,18 +91,20 @@ function handleAddCategory() {
   showCategoryEditor.value = true;
 }
 
-function handleEditCategory(category: any) {
-  editingCategory.value = category;
+function handleEditCategory() {
+  if (!activeCategory.value) return;
+  editingCategory.value = activeCategory.value;
   showCategoryEditor.value = true;
 }
 
-async function handleDeleteCategory(category: any) {
+async function handleDeleteCategory() {
+  if (!activeCategory.value) return;
   try {
     await showConfirmDialog({
       title: '确认删除',
-      message: `确定要删除分类「${category.name}」吗？该操作将同时删除该分类下的所有菜品。`,
+      message: `确定要删除分类「${activeCategory.value.name}」吗？该操作将同时删除该分类下的所有菜品。`
     });
-    await categoryStore.removeCategory(category.id);
+    await categoryStore.removeCategory(activeCategory.value.id);
     await dishStore.fetchDishes();
     showToast('删除成功');
   } catch {
@@ -118,83 +128,61 @@ async function handleSaveCategory(data: { name: string; sort: number }) {
 }
 
 function handleLogout() {
-  showConfirmDialog({
-    title: '退出管理模式',
-    message: '确定要退出管理模式吗？',
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-  }).then(() => {
-    adminStore.logout();
-  }).catch(() => {});
+  adminStore.logout();
 }
 
-async function handleLogin() {
-  const result = await adminUtils.showLoginPrompt();
-  if (result.error) {
-    showToast(result.error);
-  } else if (result.secret) {
-    adminStore.setAdmin(true);
-  }
+function handleLogin() {
+  showLoginDialog.value = true;
+}
+
+function handleLoginSuccess() {
+  adminStore.setAdmin(true);
+}
+
+function handleDishClick(dish: Dish) {
+  router.push({ name: 'dish-detail', params: { id: dish.id } });
 }
 </script>
 
 <template>
   <div class="home-page">
-    <div class="navbar">
-      <span class="title">蓉姐私房菜</span>
-      <button v-if="!isAdmin" class="admin-entry-btn" @click="handleLogin">管理</button>
-    </div>
+    <NavBar title="蓉姐私房菜" :border="true">
+      <template #right>
+        <VanButton v-if="!isAdmin" size="small" type="primary" plain @click="handleLogin">管理</VanButton>
+        <VanButton v-else size="small" type="warning" plain @click="handleLogout">退出</VanButton>
+      </template>
+    </NavBar>
 
-    <!-- Admin Mode Banner -->
-    <div v-if="isAdmin" class="admin-banner">
-      <span>管理模式</span>
-      <button class="logout-btn" @click="handleLogout">退出</button>
-    </div>
 
-    <!-- Category Tabs -->
-    <div class="category-tabs">
-      <div
-        v-for="category in categoryStore.sortedCategories"
-        :key="category.id"
-        class="tab-item"
-        :class="{ active: activeCategoryId === category.id }"
-        @click="onCategoryChange(category.id)"
-      >
-        {{ category.name }}
-      </div>
-    </div>
+    <Tabs v-model:active="activeCategoryId" shrink swipeable @change="onCategoryChange">
+      <Tab v-for="category in categoryStore.sortedCategories" :key="category.id" :title="category.name" :name="category.id" />
+    </Tabs>
 
-    <!-- Tab Content -->
     <div class="tab-content">
-      <!-- Admin Controls for Category -->
       <div v-if="isAdmin" class="admin-category-controls">
-        <button class="btn btn-primary" @click="handleAddCategory">新增分类</button>
-        <button class="btn" @click="handleEditCategory(categoryStore.sortedCategories.find(c => c.id === activeCategoryId) || {})">编辑</button>
-        <button class="btn btn-danger" @click="handleDeleteCategory(categoryStore.sortedCategories.find(c => c.id === activeCategoryId) || {})">删除</button>
+        <VanButton size="small" type="primary" plain @click="handleAddCategory">新增分类</VanButton>
+        <VanButton size="small" plain @click="handleEditCategory">编辑</VanButton>
+        <VanButton size="small" type="danger" plain @click="handleDeleteCategory">删除</VanButton>
       </div>
 
-      <!-- Dish List -->
       <div v-if="currentDishes.length > 0" class="dish-list">
         <DishCard
           v-for="dish in currentDishes"
           :key="dish.id"
           :dish="dish"
           :showActions="isAdmin"
+          @click="handleDishClick"
           @edit="handleEditDish"
           @delete="handleDeleteDish"
         />
       </div>
-      <div v-else class="empty-state">
-        <span>暂无菜品</span>
-      </div>
+      <VanEmpty v-else description="暂无菜品" />
 
-      <!-- Admin Add Dish Button -->
-      <div v-if="isAdmin" class="admin-add-dish">
-        <button class="btn btn-primary btn-block" @click="handleAddDish">新增菜品</button>
+      <div v-if="isAdmin" class="admin-add-dish-fixed">
+        <VanButton block type="primary" icon="plus" @click="handleAddDish">新增菜品</VanButton>
       </div>
     </div>
 
-    <!-- Dish Editor Popup -->
     <DishEditor
       v-model:visible="showDishEditor"
       :dish="editingDish"
@@ -204,151 +192,53 @@ async function handleLogin() {
       @close="showDishEditor = false"
     />
 
-    <!-- Category Editor Popup -->
     <CategoryEditor
       v-model:visible="showCategoryEditor"
       :category="editingCategory"
       @save="handleSaveCategory"
       @close="showCategoryEditor = false"
     />
+
+    <LoginDialog v-model:visible="showLoginDialog" @success="handleLoginSuccess" />
   </div>
 </template>
 
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background: #f7f8fa;
-}
-
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: #fff;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #323233;
-  flex: 1;
-  text-align: center;
-}
-
-.admin-entry-btn {
-  padding: 4px 12px;
-  background: #1989fa;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.admin-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 16px;
-  background: #fff3e0;
-  color: #fa8c16;
-  font-size: 14px;
-}
-
-.logout-btn {
-  padding: 4px 12px;
-  background: #fa8c16;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.category-tabs {
-  display: flex;
-  overflow-x: auto;
-  background: #fff;
-  border-bottom: 1px solid #ebedf0;
-  -webkit-overflow-scrolling: touch;
-}
-
-.category-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.tab-item {
-  flex-shrink: 0;
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #646566;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-}
-
-.tab-item.active {
-  color: #1989fa;
-  border-bottom-color: #1989fa;
-}
-
-.tab-content {
-  padding: 12px;
-  min-height: 50vh;
+  background: var(--color-bg-page);
 }
 
 .admin-category-controls {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px;
-  background: #f7f8fa;
-  border-radius: 8px;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-md);
 }
 
 .dish-list {
   display: flex;
   flex-direction: column;
+  gap: var(--space-md);
 }
 
-.empty-state {
-  text-align: center;
-  padding: 40px 0;
-  color: #969799;
+.admin-add-dish-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-md);
+  padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-bg-card);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  z-index: 50;
 }
 
-.admin-add-dish {
-  margin-top: 16px;
-  padding: 12px;
-}
-
-.btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  background: #fff;
-  color: #323233;
-}
-
-.btn-primary {
-  background: #1989fa;
-  color: #fff;
-}
-
-.btn-danger {
-  background: #ee0a24;
-  color: #fff;
-}
-
-.btn-block {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
+.tab-content {
+  padding: var(--space-md);
+  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  min-height: 50vh;
 }
 </style>

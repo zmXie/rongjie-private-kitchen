@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button as VanButton, Icon as VanIcon } from 'vant';
 import type { Dish } from '@/types';
 
 interface Props {
@@ -7,27 +8,31 @@ interface Props {
 }
 
 defineProps<Props>();
+
 const emit = defineEmits<{
   (e: 'edit', dish: Dish): void;
   (e: 'delete', dish: Dish): void;
+  (e: 'click', dish: Dish): void;
 }>();
 </script>
 
 <template>
-  <div class="dish-card">
+  <div class="dish-card" @click="emit('click', dish)">
     <div class="dish-thumb">
       <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="dish-image" loading="lazy" decoding="async" />
-      <div v-else class="dish-placeholder">暂无图片</div>
+      <div v-else class="dish-placeholder">
+        <VanIcon name="photo-o" size="32" color="var(--color-text-placeholder)" />
+      </div>
     </div>
     <div class="dish-content">
-      <div class="dish-header">
-        <span class="dish-name">{{ dish.name }}</span>
-        <span class="dish-price">¥{{ dish.price.toFixed(2) }}</span>
-      </div>
+      <div class="dish-name">{{ dish.name }}</div>
       <div class="dish-desc">{{ dish.description || '暂无描述' }}</div>
-      <div v-if="showActions" class="dish-actions">
-        <button class="action-btn edit" @click="emit('edit', dish)">编辑</button>
-        <button class="action-btn delete" @click="emit('delete', dish)">删除</button>
+      <div class="dish-footer">
+        <span class="dish-price">¥{{ dish.price.toFixed(2) }}</span>
+        <div v-if="showActions" class="dish-actions" @click.stop>
+          <VanButton size="mini" type="primary" plain @click="emit('edit', dish)">编辑</VanButton>
+          <VanButton size="mini" type="danger" plain @click="emit('delete', dish)">删除</VanButton>
+        </div>
       </div>
     </div>
   </div>
@@ -36,19 +41,23 @@ const emit = defineEmits<{
 <style scoped>
 .dish-card {
   display: flex;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease;
+}
+
+.dish-card:active {
+  transform: scale(0.98);
 }
 
 .dish-thumb {
   flex-shrink: 0;
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
+  width: 140px;
+  height: 120px;
   overflow: hidden;
+  background: var(--color-bg-input);
 }
 
 .dish-image {
@@ -63,41 +72,30 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f7f8fa;
-  color: #969799;
-  font-size: 12px;
 }
 
 .dish-content {
   flex: 1;
-  margin-left: 12px;
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
-}
-
-.dish-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  min-width: 0;
 }
 
 .dish-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #323233;
-}
-
-.dish-price {
-  color: #ee0a24;
-  font-weight: 600;
-  font-size: 16px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dish-desc {
-  font-size: 12px;
-  color: #969799;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
   line-height: 1.5;
-  margin-top: 4px;
+  margin-top: var(--space-xs);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -105,29 +103,22 @@ const emit = defineEmits<{
   -webkit-box-orient: vertical;
 }
 
+.dish-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--space-sm);
+}
+
+.dish-price {
+  color: var(--color-price);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
 .dish-actions {
   display: flex;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 8px;
-}
-
-.action-btn {
-  flex: 1;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.action-btn.edit {
-  background: #1989fa;
-  color: #fff;
-}
-
-.action-btn.delete {
-  background: #ee0a24;
-  color: #fff;
+  gap: var(--space-xs);
 }
 </style>

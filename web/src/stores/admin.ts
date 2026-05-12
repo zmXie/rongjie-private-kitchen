@@ -4,16 +4,26 @@ import { ref } from 'vue';
 export const useAdminStore = defineStore('admin', () => {
   const isAdmin = ref(false);
 
-  function init() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const adminParam = urlParams.get('admin');
-
-    if (adminParam) {
-      localStorage.setItem('admin-secret', adminParam);
-      isAdmin.value = true;
-    } else {
-      isAdmin.value = false;
+  async function init() {
+    const secret = localStorage.getItem('admin-secret');
+    if (secret) {
+      try {
+        const res = await fetch('/api/admin/check', {
+          headers: { 'x-admin-secret': secret },
+        });
+        if (res.ok) {
+          isAdmin.value = true;
+          return;
+        }
+        // 仅密钥无效时才清除，网络错误保留
+        if (res.status === 401) {
+          localStorage.removeItem('admin-secret');
+        }
+      } catch {
+        // 网络错误，保留密钥，下次重试
+      }
     }
+    isAdmin.value = false;
   }
 
   function setAdmin(value: boolean) {
@@ -21,11 +31,7 @@ export const useAdminStore = defineStore('admin', () => {
   }
 
   function logout() {
-    localStorage.removeItem('admin-secret');
     isAdmin.value = false;
-    const url = new URL(window.location.href);
-    url.searchParams.delete('admin');
-    window.history.replaceState({}, '', url.toString());
   }
 
   return {

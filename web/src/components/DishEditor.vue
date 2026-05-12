@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { showToast } from 'vant';
+import { ref, watch, computed } from 'vue';
+import { showToast, Popup as VanPopup, Field as VanField, Button as VanButton, Picker as VanPicker } from 'vant';
 import type { Dish, Category } from '@/types';
 import ImageUploader from './ImageUploader.vue';
 
@@ -14,14 +14,17 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'save', data: {
-    category_id: number;
-    name: string;
-    description: string;
-    price: number;
-    image_url: string;
-    sort: number;
-  }): void;
+  (
+    e: 'save',
+    data: {
+      category_id: number;
+      name: string;
+      description: string;
+      price: number;
+      image_url: string;
+      sort: number;
+    }
+  ): void;
 }>();
 
 const form = ref({
@@ -30,12 +33,21 @@ const form = ref({
   description: '',
   price: 0,
   image_url: '',
-  sort: 0,
+  sort: 0
+});
+
+const showCategoryPicker = ref(false);
+
+const categoryColumns = computed(() => props.categories.map(c => ({ text: c.name, value: c.id })));
+
+const selectedCategoryName = computed(() => {
+  const cat = props.categories.find(c => c.id === form.value.category_id);
+  return cat?.name ?? '';
 });
 
 watch(
   () => props.visible,
-  (val) => {
+  val => {
     if (val && props.dish) {
       form.value = {
         category_id: props.dish.category_id,
@@ -43,7 +55,7 @@ watch(
         description: props.dish.description || '',
         price: props.dish.price,
         image_url: props.dish.image_url || '',
-        sort: props.dish.sort,
+        sort: props.dish.sort
       };
     } else if (val && props.categories.length > 0) {
       form.value = {
@@ -52,11 +64,18 @@ watch(
         description: '',
         price: 0,
         image_url: '',
-        sort: 0,
+        sort: 0
       };
     }
   }
 );
+
+function onCategoryConfirm({ selectedValues }: { selectedValues: number[] }) {
+  if (selectedValues.length > 0) {
+    form.value.category_id = selectedValues[0];
+  }
+  showCategoryPicker.value = false;
+}
 
 function handleImageUploaded(url: string) {
   form.value.image_url = url;
@@ -81,155 +100,99 @@ function handleSave() {
     description: form.value.description.trim(),
     price: form.value.price,
     image_url: form.value.image_url,
-    sort: form.value.sort,
+    sort: form.value.sort
   });
 }
 </script>
 
 <template>
-  <div v-if="visible" class="popup-overlay" @click.self="emit('close')">
+  <VanPopup :show="visible" position="bottom" round closeable close-icon="cross" :style="{ maxHeight: '85vh' }" @close="emit('close')">
     <div class="dish-editor">
-      <div class="editor-header">
-        <span class="editor-title">{{ dish ? '编辑菜品' : '新增菜品' }}</span>
-        <span class="close-btn" @click="emit('close')">×</span>
-      </div>
-      <div class="editor-form">
-        <div class="form-item">
-          <label>分类</label>
-          <select v-model.number="form.category_id">
-            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.name }}
-            </option>
-          </select>
-        </div>
-        <div class="form-item">
-          <label>菜品名称</label>
-          <input v-model="form.name" type="text" placeholder="请输入菜品名称" />
-        </div>
-        <div class="form-item">
-          <label>描述</label>
-          <textarea v-model="form.description" placeholder="请输入菜品描述" rows="2"></textarea>
-        </div>
-        <div class="form-item">
-          <label>价格</label>
-          <input v-model.number="form.price" type="number" placeholder="请输入价格" />
-        </div>
-        <div class="form-item">
-          <label>排序</label>
-          <input v-model.number="form.sort" type="number" placeholder="数值越小越靠前" />
-        </div>
-        <div class="form-item">
-          <label>菜品图片</label>
-          <ImageUploader
-            :imageUrl="form.image_url"
-            :isAdmin="isAdmin"
-            @upload="handleImageUploaded"
-            @remove="form.image_url = ''"
-          />
+      <div class="editor-header">{{ dish ? '编辑菜品' : '新增菜品' }}</div>
+      <div class="editor-body">
+        <VanField
+          v-model="selectedCategoryName"
+          is-link
+          readonly
+          label="分类"
+          placeholder="请选择分类"
+          input-align="right"
+          @click="showCategoryPicker = true"
+        />
+        <VanField v-model="form.name" label="菜品名称" placeholder="请输入菜品名称" input-align="right" />
+        <VanField
+          v-model="form.description"
+          label="描述"
+          type="textarea"
+          placeholder="请输入菜品描述"
+          input-align="right"
+          rows="2"
+          autosize
+        />
+        <VanField v-model.number="form.price" label="价格" type="number" placeholder="请输入价格" input-align="right" />
+        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="right" />
+        <div class="form-item-image">
+          <div class="image-label">菜品图片</div>
+          <ImageUploader :imageUrl="form.image_url" :isAdmin="isAdmin" @upload="handleImageUploaded" @remove="form.image_url = ''" />
         </div>
       </div>
-      <div class="editor-actions">
-        <button class="btn-cancel" @click="emit('close')">取消</button>
-        <button class="btn-save" @click="handleSave">保存</button>
+
+      <div class="editor-footer">
+        <VanButton block @click="emit('close')">取消</VanButton>
+        <VanButton block type="primary" @click="handleSave">保存</VanButton>
       </div>
     </div>
-  </div>
+  </VanPopup>
+
+  <VanPopup :show="showCategoryPicker" round position="bottom" @close="showCategoryPicker = false">
+    <VanPicker
+      :columns="categoryColumns"
+      :model-value="[form.category_id]"
+      @confirm="onCategoryConfirm"
+      @cancel="showCategoryPicker = false"
+    />
+  </VanPopup>
 </template>
 
 <style scoped>
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: flex-end;
-  z-index: 1000;
-}
-
 .dish-editor {
-  width: 100%;
-  background: #fff;
-  border-radius: 16px 16px 0 0;
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
   max-height: 85vh;
-  overflow-y: auto;
 }
 
 .editor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #ebedf0;
+  flex-shrink: 0;
+  padding: var(--space-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.editor-title {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.close-btn {
-  font-size: 24px;
-  color: #969799;
-  cursor: pointer;
-}
-
-.editor-form {
-  padding: 16px 0;
-}
-
-.form-item {
-  margin-bottom: 16px;
-}
-
-.form-item label {
-  display: block;
-  font-size: 14px;
-  color: #646566;
-  margin-bottom: 8px;
-}
-
-.form-item input,
-.form-item select,
-.form-item textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #dcdee0;
-  border-radius: 8px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.form-item textarea {
-  resize: vertical;
-}
-
-.editor-actions {
-  display: flex;
-  gap: 12px;
-  padding-top: 16px;
-}
-
-.btn-cancel,
-.btn-save {
+.editor-body {
   flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.btn-cancel {
-  background: #f7f8fa;
-  color: #323233;
+.form-item-image {
+  padding: var(--space-md) var(--space-lg);
 }
 
-.btn-save {
-  background: #1989fa;
-  color: #fff;
+.image-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.editor-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
 }
 </style>
