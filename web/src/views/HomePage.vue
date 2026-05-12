@@ -16,17 +16,21 @@ const categoryStore = useCategoryStore();
 const dishStore = useDishStore();
 const adminStore = useAdminStore();
 
-const activeCategoryId = ref<number | string | undefined>(undefined);
 const showDishEditor = ref(false);
 const showCategoryEditor = ref(false);
 const showLoginDialog = ref(false);
 const editingDish = ref<any>(null);
 const editingCategory = ref<any>(null);
 
+const activeCategoryId = computed({
+  get: () => categoryStore.activeCategoryId,
+  set: (val) => { categoryStore.activeCategoryId = val; },
+});
+
 onMounted(async () => {
   await categoryStore.fetchCategories();
   await dishStore.fetchDishes();
-  if (categoryStore.categories.length > 0) {
+  if (!activeCategoryId.value && categoryStore.categories.length > 0) {
     activeCategoryId.value = categoryStore.categories[0].id;
   }
 });
@@ -41,6 +45,16 @@ const currentDishes = computed(() => {
 const activeCategory = computed(() => {
   if (!activeCategoryId.value) return null;
   return categoryStore.categories.find(c => c.id === Number(activeCategoryId.value));
+});
+
+const nextDishSort = computed(() => {
+  if (currentDishes.value.length === 0) return 0;
+  return Math.max(...currentDishes.value.map(d => d.sort)) + 1;
+});
+
+const nextCategorySort = computed(() => {
+  if (categoryStore.categories.length === 0) return 0;
+  return Math.max(...categoryStore.categories.map(c => c.sort)) + 1;
 });
 
 function onCategoryChange(name: string | number) {
@@ -187,6 +201,7 @@ function handleDishClick(dish: Dish) {
       :dish="editingDish"
       :categories="categoryStore.categories"
       :isAdmin="isAdmin"
+      :nextSort="nextDishSort"
       @save="handleSaveDish"
       @close="showDishEditor = false"
     />
@@ -194,6 +209,7 @@ function handleDishClick(dish: Dish) {
     <CategoryEditor
       v-model:visible="showCategoryEditor"
       :category="editingCategory"
+      :nextSort="nextCategorySort"
       @save="handleSaveCategory"
       @close="showCategoryEditor = false"
     />

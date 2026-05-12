@@ -9,6 +9,7 @@ interface Props {
   dish?: Dish | null;
   categories: Category[];
   isAdmin?: boolean;
+  nextSort?: number;
 }
 
 const props = defineProps<Props>();
@@ -64,7 +65,7 @@ watch(
         description: '',
         price: 0,
         image_url: '',
-        sort: 0
+        sort: props.nextSort ?? 0
       };
     }
   }

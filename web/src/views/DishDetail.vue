@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { NavBar, Icon as VanIcon, Tag as VanTag, Empty as VanEmpty } from 'vant';
+import { NavBar, Icon as VanIcon, Tag as VanTag, Empty as VanEmpty, showImagePreview } from 'vant';
 import { useDishStore } from '@/stores/dishes';
 import { useCategoryStore } from '@/stores/categories';
 
@@ -33,6 +33,12 @@ const categoryName = computed(() => {
 function onClickLeft() {
   router.back();
 }
+
+function showPreview() {
+  if (dish.value?.image_url) {
+    showImagePreview([dish.value.image_url]);
+  }
+}
 </script>
 
 <template>
@@ -46,7 +52,7 @@ function onClickLeft() {
 
     <template v-if="dish">
       <div class="detail-hero">
-        <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="hero-image" />
+        <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="hero-image" @click="showPreview" />
         <div v-else class="hero-placeholder">
           <VanIcon name="photo-o" size="64" color="var(--color-text-placeholder)" />
         </div>

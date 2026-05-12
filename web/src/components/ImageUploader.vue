@@ -18,6 +18,7 @@ const emit = defineEmits<{
 const loading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const previewUrl = ref(props.imageUrl || '');
+const localPreviewUrl = ref('');
 
 watch(
   () => props.imageUrl,
@@ -66,12 +67,15 @@ async function handleFileChange(e: Event) {
   }
 
   loading.value = true;
+  localPreviewUrl.value = URL.createObjectURL(file);
   try {
     const compressed = await compressImage(file);
     const res = await uploadImage(compressed);
     previewUrl.value = res.url;
+    localPreviewUrl.value = '';
     emit('upload', res.url);
   } catch (err: any) {
+    localPreviewUrl.value = '';
     alert(err.message || '上传失败');
   } finally {
     loading.value = false;
@@ -82,12 +86,12 @@ async function handleFileChange(e: Event) {
 <template>
   <div class="image-uploader">
     <input ref="fileInput" type="file" accept="image/*" style="display: none" :disabled="loading" @change="handleFileChange" />
-    <div v-if="!previewUrl" class="upload-placeholder" :class="{ disabled: loading }" @click="!loading && handleClick()">
+    <div v-if="!previewUrl && !localPreviewUrl" class="upload-placeholder" :class="{ disabled: loading }" @click="!loading && handleClick()">
       <span class="upload-icon">+</span>
       <span class="upload-text">上传图片</span>
     </div>
     <div v-else class="preview-container">
-      <img :src="previewUrl" alt="preview" class="preview-image" />
+      <img :src="localPreviewUrl || previewUrl" alt="preview" class="preview-image" />
       <div v-if="loading" class="loading-overlay">
         <VanLoading type="spinner" color="#fff" size="20" />
       </div>

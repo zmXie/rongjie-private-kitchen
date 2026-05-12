@@ -7,6 +7,7 @@ export const useCategoryStore = defineStore('categories', () => {
   const categories = ref<Category[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const activeCategoryId = ref<number | string | undefined>(undefined);
 
   const sortedCategories = computed(() =>
     [...categories.value].sort((a, b) => a.sort - b.sort)
@@ -48,6 +49,7 @@ export const useCategoryStore = defineStore('categories', () => {
   return {
     categories,
     sortedCategories,
+    activeCategoryId,
     loading,
     error,
     fetchCategories,

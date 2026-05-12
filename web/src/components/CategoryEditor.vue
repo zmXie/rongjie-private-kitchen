@@ -6,6 +6,7 @@ import type { Category } from '@/types';
 interface Props {
   visible: boolean;
   category?: Category | null;
+  nextSort?: number;
 }
 
 const props = defineProps<Props>();
@@ -27,7 +28,7 @@ watch(
       form.value.sort = props.category.sort;
     } else if (val) {
       form.value.name = '';
-      form.value.sort = 0;
+      form.value.sort = props.nextSort ?? 0;
     }
   }
 );
