@@ -24,7 +24,6 @@ const editingDish = ref<any>(null);
 const editingCategory = ref<any>(null);
 
 onMounted(async () => {
-  await adminStore.init();
   await categoryStore.fetchCategories();
   await dishStore.fetchDishes();
   if (categoryStore.categories.length > 0) {

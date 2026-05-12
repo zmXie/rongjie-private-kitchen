@@ -81,7 +81,7 @@ async function setupInfrastructure() {
   // 4. 设置 ADMIN_SECRET
   console.log('4️⃣  设置管理员密钥...');
   console.log('   执行: npx wrangler secret put ADMIN_SECRET');
-  console.log('   然后输入你的管理员密钥（如 rongjie666）\n');
+  console.log('   然后输入你的管理员密钥\n');
 
   // 5. 检查配置
   console.log('5️⃣  检查配置...');
