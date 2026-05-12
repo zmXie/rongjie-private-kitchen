@@ -13,26 +13,30 @@ type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
+// 全局启用 CORS
 app.use('/*', cors());
 
+// 成功响应封装
 const successResponse = <T>(data: T) => ({
   code: 0,
   message: 'success',
   data
 });
 
+// 错误响应封装
 const errorResponse = (message: string, code = 1) => ({
   code,
   message,
   data: null as null
 });
 
-// Validation schemas
+// 分类校验规则
 const categorySchema = z.object({
   name: z.string().min(1).max(50),
   sort: z.number().int().optional()
 });
 
+// 菜品校验规则
 const dishSchema = z.object({
   category_id: z.number().int().positive(),
   name: z.string().min(1).max(100),
@@ -43,7 +47,7 @@ const dishSchema = z.object({
   status: z.number().int().optional()
 });
 
-// Admin authentication middleware
+// 管理员认证中间件，校验 x-admin-secret 请求头
 const adminAuth = async (c: any, next: () => Promise<void>) => {
   const secret = c.req.header('x-admin-secret');
 
@@ -58,12 +62,12 @@ const adminAuth = async (c: any, next: () => Promise<void>) => {
   await next();
 };
 
-// Admin secret validation (no data change)
+// 验证管理员密钥是否有效
 app.get('/api/admin/check', adminAuth, c => {
   return c.json(successResponse({ valid: true }));
 });
 
-// Categories API
+// 获取所有分类（按排序字段升序）
 app.get('/api/categories', async c => {
   const db = c.env.DB;
   const result = await db.prepare('SELECT * FROM categories ORDER BY sort ASC, id ASC').all();
@@ -71,6 +75,7 @@ app.get('/api/categories', async c => {
   return c.json(successResponse(result.results || []));
 });
 
+// 新增分类
 app.post('/api/categories', adminAuth, zValidator('json', categorySchema), async c => {
   const db = c.env.DB;
   const body = c.req.valid('json');
@@ -85,6 +90,7 @@ app.post('/api/categories', adminAuth, zValidator('json', categorySchema), async
   return c.json(successResponse(category), 201);
 });
 
+// 更新分类
 app.put('/api/categories/:id', adminAuth, zValidator('json', categorySchema), async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
@@ -100,20 +106,18 @@ app.put('/api/categories/:id', adminAuth, zValidator('json', categorySchema), as
   return c.json(successResponse(category));
 });
 
+// 删除分类（级联删除该分类下所有菜品）
 app.delete('/api/categories/:id', adminAuth, async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
 
-  // First delete all dishes in this category
   await db.prepare('DELETE FROM dishes WHERE category_id = ?').bind(id).run();
-
-  // Then delete the category
   await db.prepare('DELETE FROM categories WHERE id = ?').bind(id).run();
 
   return c.json(successResponse({ deleted: true }));
 });
 
-// Dishes API
+// 获取菜品列表，支持按分类筛选，仅返回上架状态的菜品
 app.get('/api/dishes', async c => {
   const db = c.env.DB;
   const categoryId = c.req.query('category_id');
@@ -134,6 +138,7 @@ app.get('/api/dishes', async c => {
   return c.json(successResponse(result.results || []));
 });
 
+// 新增菜品
 app.post('/api/dishes', adminAuth, zValidator('json', dishSchema), async c => {
   const db = c.env.DB;
   const body = c.req.valid('json');
@@ -151,6 +156,7 @@ app.post('/api/dishes', adminAuth, zValidator('json', dishSchema), async c => {
   return c.json(successResponse(dish), 201);
 });
 
+// 更新菜品（仅更新传入的字段）
 app.put('/api/dishes/:id', adminAuth, zValidator('json', dishSchema.partial()), async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
@@ -201,6 +207,7 @@ app.put('/api/dishes/:id', adminAuth, zValidator('json', dishSchema.partial()), 
   return c.json(successResponse(dish));
 });
 
+// 删除菜品
 app.delete('/api/dishes/:id', adminAuth, async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
@@ -210,25 +217,7 @@ app.delete('/api/dishes/:id', adminAuth, async c => {
   return c.json(successResponse({ deleted: true }));
 });
 
-// R2 URL handler - serve images directly from R2
-app.get('/r2/:filename', async c => {
-  const filename = c.req.param('filename');
-  const bucket = c.env.IMAGES;
-
-  const object = await bucket.get(filename);
-
-  if (!object) {
-    return c.json(errorResponse('Image not found'), 404);
-  }
-
-  const headers = new Headers();
-  headers.set('Content-Type', object.httpMetadata?.contentType || 'application/octet-stream');
-  headers.set('Cache-Control', 'public, max-age=31536000');
-
-  return new Response(object.body, { headers });
-});
-
-// Image upload API
+// 上传图片到 R2，校验类型和大小，返回公共访问链接
 app.post('/api/upload', adminAuth, async c => {
   const formData = await c.req.formData();
   const file = formData.get('file') as File | null;
@@ -237,13 +226,11 @@ app.post('/api/upload', adminAuth, async c => {
     return c.json(errorResponse('No file provided'), 400);
   }
 
-  // Validate file type
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   if (!allowedTypes.includes(file.type)) {
     return c.json(errorResponse('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed'), 400);
   }
 
-  // Validate file size (max 5MB)
   if (file.size > 5 * 1024 * 1024) {
     return c.json(errorResponse('File too large. Maximum size is 5MB'), 400);
   }
@@ -252,14 +239,19 @@ app.post('/api/upload', adminAuth, async c => {
   const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
   const bucket = c.env.IMAGES;
-  await bucket.put(filename, file);
+  await bucket.put(filename, file, {
+    httpMetadata: {
+      cacheControl: 'public, max-age=31536000, immutable',
+      contentType: file.type,
+    },
+  });
 
-  const imageUrl = `https://rongjie-private-kitchen.pages.dev/r2/${filename}`;
+  const imageUrl = `${c.env.PUBLIC_R2_URL}/${filename}`;
 
   return c.json(successResponse({ url: imageUrl }), 201);
 });
 
-// Health check
+// 健康检查
 app.get('/api/health', c => {
   return c.json(successResponse({ status: 'ok' }));
 });
