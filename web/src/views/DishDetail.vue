@@ -18,7 +18,10 @@
       <div class="detail-info">
         <div class="detail-name">
           {{ dish.name }}
-          <VanTag v-if="dish.is_recommended" type="danger" size="medium">招牌</VanTag>
+          <span v-if="dish.is_recommended && !dish.is_sold_out" class="detail-recommend">
+            推荐
+            <VanIcon name="good-job" size="12" color="var(--color-primary)" />
+          </span>
           <VanTag v-if="dish.is_sold_out" color="#636e72" size="medium">今日售罄</VanTag>
         </div>
         <div class="detail-meta">
@@ -159,6 +162,20 @@ async function handleShare() {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.detail-recommend {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-primary-bg);
+  padding: 1px 6px;
+  border-radius: 99px;
+  line-height: 18px;
 }
 
 .detail-meta {

@@ -23,8 +23,8 @@
       "first_read": "2026-05-13T03:26:58.028Z"
     },
     "d:/data/rongjie-private-kitchen/web/src/views/DishDetail.vue": {
-      "count": 1,
-      "tokens": 934,
+      "count": 2,
+      "tokens": 1333,
       "first_read": "2026-05-13T03:27:01.438Z"
     },
     "d:/data/rongjie-private-kitchen/web/src/App.vue": {
@@ -41,6 +41,11 @@
       "count": 1,
       "tokens": 256,
       "first_read": "2026-05-13T03:33:06.414Z"
+    },
+    "d:/data/rongjie-private-kitchen/web/src/components/DishCard.vue": {
+      "count": 1,
+      "tokens": 745,
+      "first_read": "2026-05-13T03:38:02.355Z"
     }
   },
   "files_written": [
@@ -115,6 +120,24 @@
       "action": "edit",
       "tokens": 50,
       "at": "2026-05-13T03:33:11.604Z"
+    },
+    {
+      "file": "d:/data/rongjie-private-kitchen/web/src/views/DishDetail.vue",
+      "action": "edit",
+      "tokens": 22,
+      "at": "2026-05-13T03:37:15.701Z"
+    },
+    {
+      "file": "d:/data/rongjie-private-kitchen/web/src/views/DishDetail.vue",
+      "action": "edit",
+      "tokens": 82,
+      "at": "2026-05-13T03:38:14.300Z"
+    },
+    {
+      "file": "d:/data/rongjie-private-kitchen/web/src/views/DishDetail.vue",
+      "action": "edit",
+      "tokens": 154,
+      "at": "2026-05-13T03:38:24.412Z"
     }
   ],
   "edit_counts": {
@@ -122,12 +145,12 @@
     "web/src/stores/dishes.ts": 2,
     "web/src/stores/categories.ts": 3,
     "web/src/views/HomePage.vue": 1,
-    "web/src/views/DishDetail.vue": 1,
+    "web/src/views/DishDetail.vue": 4,
     ".claude/rules/components.md": 2
   },
-  "anatomy_hits": 6,
+  "anatomy_hits": 7,
   "anatomy_misses": 0,
-  "repeated_reads_warned": 1,
+  "repeated_reads_warned": 2,
   "cerebrum_warnings": 0,
-  "stop_count": 2
+  "stop_count": 5
 }

@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-13T03:33:11.593Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-13T03:38:24.402Z
 > Files: 78 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -153,5 +153,5 @@
 
 ## web/src/views/
 
-- `DishDetail.vue` — Vue: setup (~1333 tok)
+- `DishDetail.vue` — Vue: setup (~1447 tok)
 - `HomePage.vue` — Vue: dish-detail, setup (~2536 tok)
