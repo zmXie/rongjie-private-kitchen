@@ -13,7 +13,7 @@
           <VanStep>已完成</VanStep>
         </VanSteps>
         <div v-else class="progress-cancelled">
-          <VanIcon name="close" size="20" color="#e74c3c" />
+          <VanIcon name="close" size="20" color="var(--color-text-placeholder)" />
           <span>已取消</span>
         </div>
       </div>
@@ -195,7 +195,7 @@ async function handleShare() {
   justify-content: center;
   gap: var(--space-xs);
   font-size: var(--font-size-base);
-  color: #e74c3c;
+  color: var(--color-text-placeholder);
   font-weight: var(--font-weight-medium);
   padding: var(--space-sm) 0;
 }

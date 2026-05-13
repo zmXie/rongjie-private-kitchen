@@ -67,7 +67,7 @@ const STATUS_MAP: Record<number, { text: string; type: string }> = {
   0: { text: '待确认', type: 'warning' },
   1: { text: '已确认', type: 'primary' },
   2: { text: '已完成', type: 'success' },
-  3: { text: '已取消', type: 'danger' }
+  3: { text: '已取消', type: 'default' }
 };
 
 function getStatusText(status: number) {
