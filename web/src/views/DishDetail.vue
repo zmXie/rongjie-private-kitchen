@@ -1,10 +1,8 @@
 <template>
-  <div class="dish-detail-page">
-    <NavBar title="菜品详情" left-arrow :border="false" @click-left="onClickLeft">
-      <template #right>
-        <VanIcon name="share-o" size="20" color="var(--color-text-primary)" @click="handleShare" />
-      </template>
-    </NavBar>
+  <PageContainer title="菜品详情" left-arrow :border="false" :loading="!dishStore.initialized" @click-left="onClickLeft">
+    <template #nav-right>
+      <VanIcon name="share-o" size="20" color="var(--color-text-primary)" @click="handleShare" />
+    </template>
 
     <template v-if="dish">
       <div class="detail-hero">
@@ -35,15 +33,16 @@
     </template>
 
     <VanEmpty v-else description="菜品不存在" />
-  </div>
+  </PageContainer>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { NavBar, Icon as VanIcon, Tag as VanTag, Empty as VanEmpty, showImagePreview, showToast } from 'vant';
+import { Icon as VanIcon, Tag as VanTag, Empty as VanEmpty, showImagePreview, showToast } from 'vant';
 import { useDishStore } from '@/stores/dishes';
 import { useCategoryStore } from '@/stores/categories';
+import PageContainer from '@/components/PageContainer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -102,11 +101,6 @@ async function handleShare() {
 </script>
 
 <style scoped>
-.dish-detail-page {
-  min-height: 100vh;
-  background: var(--color-bg-page);
-}
-
 .detail-hero {
   width: 100%;
   aspect-ratio: 4 / 3;

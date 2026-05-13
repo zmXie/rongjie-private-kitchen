@@ -6,6 +6,7 @@ import { getDishes, createDish, updateDish, deleteDish, uploadImage } from '@/ap
 export const useDishStore = defineStore('dishes', () => {
   const dishes = ref<Dish[]>([]);
   const loading = ref(false);
+  const initialized = ref(false);
   const error = ref<string | null>(null);
 
   async function fetchDishes(categoryId?: number) {
@@ -18,6 +19,7 @@ export const useDishStore = defineStore('dishes', () => {
       error.value = e.message;
     } finally {
       loading.value = false;
+      initialized.value = true;
     }
   }
 
@@ -62,6 +64,7 @@ export const useDishStore = defineStore('dishes', () => {
   return {
     dishes,
     loading,
+    initialized,
     error,
     fetchDishes,
     addDish,

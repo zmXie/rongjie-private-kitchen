@@ -2,14 +2,15 @@
 
 ## 项目组件速查
 
-| 组件             | 用途                               |
-| ---------------- | ---------------------------------- |
-| `DishCard`       | 菜品卡片，展示图片、名称、价格     |
-| `DishEditor`     | 菜品编辑弹窗，表单创建/修改菜品   |
-| `CategoryEditor` | 分类编辑弹窗，表单创建/修改分类   |
-| `ImageUploader`  | 图片上传，内置压缩，上传至 R2     |
-| `LoadingState`   | 加载状态展示                       |
-| `LoginDialog`    | 管理员登录弹窗，密钥验证           |
+| 组件             | 用途                                  |
+| ---------------- | ------------------------------------- |
+| `PageContainer`  | 页面容器，固定 NavBar + 居中 loading  |
+| `DishCard`       | 菜品卡片，展示图片、名称、价格        |
+| `DishEditor`     | 菜品编辑弹窗，表单创建/修改菜品       |
+| `CategoryEditor` | 分类编辑弹窗，表单创建/修改分类       |
+| `ImageUploader`  | 图片上传，内置压缩，上传至 R2         |
+| `LoadingState`   | 加载状态展示（居中 spinner）          |
+| `LoginDialog`    | 管理员登录弹窗，密钥验证              |
 
 ## Vant 4 常用组件
 

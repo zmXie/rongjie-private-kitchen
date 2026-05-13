@@ -1,11 +1,9 @@
 <template>
-  <div class="home-page">
-    <NavBar title="蓉姐私房菜" :border="true">
-      <template #right>
-        <VanButton v-if="!isAdmin" size="small" type="primary" plain @click="handleLogin">管理</VanButton>
-        <VanButton v-else size="small" type="warning" plain @click="handleLogout">退出</VanButton>
-      </template>
-    </NavBar>
+  <PageContainer title="蓉姐私房菜" :loading="!dataReady" :border="true">
+    <template #nav-right>
+      <VanButton v-if="!isAdmin" size="small" type="primary" plain @click="handleLogin">管理</VanButton>
+      <VanButton v-else size="small" type="warning" plain @click="handleLogout">退出</VanButton>
+    </template>
 
     <Tabs v-model:active="activeCategoryId" shrink swipeable @change="onCategoryChange" class="sticky-tabs">
       <Tab v-for="category in categoryStore.sortedCategories" :key="category.id" :title="category.name" :name="category.id" />
@@ -18,8 +16,7 @@
         <VanButton size="small" type="danger" plain @click="handleDeleteCategory">删除</VanButton>
       </div>
 
-      <LoadingState v-if="dishStore.loading" />
-      <div v-else-if="currentDishes.length > 0" class="dish-list">
+      <div v-if="currentDishes.length > 0" class="dish-list">
         <DishCard
           v-for="dish in currentDishes"
           :key="dish.id"
@@ -68,22 +65,22 @@
     />
 
     <LoginDialog v-model:visible="showLoginDialog" @success="handleLoginSuccess" />
-  </div>
+  </PageContainer>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { showToast, showConfirmDialog, NavBar, Tab, Tabs, Button as VanButton, Empty as VanEmpty, Icon as VanIcon, ActionSheet as VanActionSheet } from 'vant';
+import { showToast, showConfirmDialog, Tab, Tabs, Button as VanButton, Empty as VanEmpty, Icon as VanIcon, ActionSheet as VanActionSheet } from 'vant';
 import { useCategoryStore } from '@/stores/categories';
 import { useDishStore } from '@/stores/dishes';
 import { useAdminStore } from '@/stores/admin';
 import { getConfig } from '@/api/config';
+import PageContainer from '@/components/PageContainer.vue';
 import DishCard from '@/components/DishCard.vue';
 import DishEditor from '@/components/DishEditor.vue';
 import CategoryEditor from '@/components/CategoryEditor.vue';
 import LoginDialog from '@/components/LoginDialog.vue';
-import LoadingState from '@/components/LoadingState.vue';
 import type { Dish } from '@/types';
 
 const router = useRouter();
@@ -100,6 +97,8 @@ const editingCategory = ref<any>(null);
 
 const contactPhone = ref('');
 const contactWechat = ref('');
+
+const dataReady = computed(() => categoryStore.initialized && dishStore.initialized);
 
 const activeCategoryId = computed({
   get: () => categoryStore.activeCategoryId,
@@ -272,11 +271,6 @@ async function onContactSelect(action: { name: string; contactType: string }) {
 </script>
 
 <style scoped>
-.home-page {
-  min-height: 100vh;
-  background: var(--color-bg-page);
-}
-
 .sticky-tabs {
   position: sticky;
   top: 46px;

@@ -6,6 +6,7 @@ import { getCategories, createCategory, updateCategory, deleteCategory } from '@
 export const useCategoryStore = defineStore('categories', () => {
   const categories = ref<Category[]>([]);
   const loading = ref(false);
+  const initialized = ref(false);
   const error = ref<string | null>(null);
   const activeCategoryId = ref<number | string | undefined>(undefined);
 
@@ -23,6 +24,7 @@ export const useCategoryStore = defineStore('categories', () => {
       error.value = e.message;
     } finally {
       loading.value = false;
+      initialized.value = true;
     }
   }
 
@@ -51,6 +53,7 @@ export const useCategoryStore = defineStore('categories', () => {
     sortedCategories,
     activeCategoryId,
     loading,
+    initialized,
     error,
     fetchCategories,
     addCategory,

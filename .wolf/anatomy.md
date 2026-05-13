@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-13T03:15:52.828Z
-> Files: 77 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-13T03:33:11.593Z
+> Files: 78 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -21,7 +21,7 @@
 
 - `architecture.md` — 架构说明 (~717 tok)
 - `coding-style.md` — 开发规范 (~226 tok)
-- `components.md` — 组件规范 (~347 tok)
+- `components.md` — 组件规范 (~366 tok)
 - `openwolf.md` (~313 tok)
 - `project-config.md` — 项目配置 (~262 tok)
 
@@ -130,6 +130,7 @@
 - `ImageUploader.vue` — Vue: setup, TS, emits (~1122 tok)
 - `LoadingState.vue` — Vue: setup, TS, 1 props (~104 tok)
 - `LoginDialog.vue` — Vue: setup, TS, emits (~644 tok)
+- `PageContainer.vue` — Vue: setup (~293 tok)
 
 ## web/src/composables/
 
@@ -143,8 +144,8 @@
 ## web/src/stores/
 
 - `admin.ts` — Exports useAdminStore (~248 tok)
-- `categories.ts` — Exports useCategoryStore (~465 tok)
-- `dishes.ts` — Exports useDishStore (~501 tok)
+- `categories.ts` — Exports useCategoryStore (~488 tok)
+- `dishes.ts` — Exports useDishStore (~525 tok)
 
 ## web/src/types/
 
@@ -152,5 +153,5 @@
 
 ## web/src/views/
 
-- `DishDetail.vue` — Vue: setup, TS (~934 tok)
-- `HomePage.vue` — Vue: dish-detail, setup, TS (~1974 tok)
+- `DishDetail.vue` — Vue: setup (~1333 tok)
+- `HomePage.vue` — Vue: dish-detail, setup (~2536 tok)
