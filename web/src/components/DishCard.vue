@@ -20,9 +20,19 @@
       <div class="dish-desc">{{ dish.description || '暂无描述' }}</div>
       <div class="dish-footer">
         <span class="dish-price" :class="{ 'price-sold-out': dish.is_sold_out }">¥{{ dish.price.toFixed(2) }}</span>
-        <div v-if="showActions" class="dish-actions" @click.stop>
-          <VanButton size="mini" type="primary" plain @click="emit('edit', dish)">编辑</VanButton>
-          <VanButton size="mini" type="danger" plain @click="emit('delete', dish)">删除</VanButton>
+        <div class="dish-footer-right" @click.stop>
+          <div v-if="showActions" class="dish-actions">
+            <VanButton size="mini" type="primary" plain @click="emit('edit', dish)">编辑</VanButton>
+            <VanButton size="mini" type="danger" plain @click="emit('delete', dish)">删除</VanButton>
+          </div>
+          <div v-if="!dish.is_sold_out && !showActions" class="dish-add-cart" @click="handleAddCart">
+            <VanIcon v-if="cartQuantity === 0" name="add-o" size="22" color="var(--color-primary)" />
+            <div v-else class="add-cart-stepper">
+              <VanIcon name="minus" size="14" color="var(--color-text-secondary)" class="stepper-btn" @click.stop="handleDecrease" />
+              <span class="stepper-num">{{ cartQuantity }}</span>
+              <VanIcon name="plus" size="14" color="#fff" class="stepper-btn stepper-btn-plus" @click.stop="handleIncrease" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -30,21 +40,39 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Button as VanButton, Icon as VanIcon } from 'vant';
 import type { Dish } from '@/types';
+import { useCartStore } from '@/stores/cart';
 
 interface Props {
   dish: Dish;
   showActions?: boolean;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: 'edit', dish: Dish): void;
   (e: 'delete', dish: Dish): void;
   (e: 'click', dish: Dish): void;
 }>();
+
+const cartStore = useCartStore();
+
+const cartQuantity = computed(() => cartStore.getQuantity(props.dish.id));
+
+function handleAddCart() {
+  cartStore.addItem(props.dish);
+}
+
+function handleIncrease() {
+  cartStore.updateQuantity(props.dish.id, cartQuantity.value + 1);
+}
+
+function handleDecrease() {
+  cartStore.updateQuantity(props.dish.id, cartQuantity.value - 1);
+}
 </script>
 
 <style scoped>
@@ -162,6 +190,12 @@ const emit = defineEmits<{
   padding-top: var(--space-sm);
 }
 
+.dish-footer-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .dish-price {
   color: var(--color-price);
   font-size: var(--font-size-lg);
@@ -176,5 +210,40 @@ const emit = defineEmits<{
 .dish-actions {
   display: flex;
   gap: var(--space-xs);
+}
+
+.dish-add-cart {
+  display: flex;
+  align-items: center;
+}
+
+.add-cart-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stepper-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+}
+
+.stepper-btn-plus {
+  background: var(--color-primary);
+  border: none;
+}
+
+.stepper-num {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  min-width: 18px;
+  text-align: center;
 }
 </style>

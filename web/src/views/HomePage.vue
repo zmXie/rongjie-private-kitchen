@@ -1,8 +1,10 @@
 <template>
   <PageContainer title="蓉姐私房菜" :loading="!dataReady" :border="true">
     <template #nav-right>
-      <VanButton v-if="!isAdmin" size="small" type="primary" plain @click="handleLogin">管理</VanButton>
-      <VanButton v-else size="small" type="warning" plain @click="handleLogout">退出</VanButton>
+      <div class="nav-right">
+        <VanIcon v-if="!isAdmin" name="setting-o" size="22" color="var(--color-text-secondary)" @click="handleLogin" />
+        <VanIcon v-else name="revoke" size="22" color="var(--color-text-secondary)" @click="handleLogout" />
+      </div>
     </template>
 
     <Tabs v-model:active="activeCategoryId" shrink swipeable @change="onCategoryChange" class="sticky-tabs">
@@ -38,6 +40,8 @@
       <VanIcon name="phone-o" size="22" color="#fff" />
     </div>
 
+    <CartFab v-if="!isAdmin" />
+
     <VanActionSheet
       v-model:show="showContactSheet"
       :actions="contactActions"
@@ -65,6 +69,8 @@
     />
 
     <LoginDialog v-model:visible="showLoginDialog" @success="handleLoginSuccess" />
+
+    <AppTabbar />
   </PageContainer>
 </template>
 
@@ -81,6 +87,8 @@ import DishCard from '@/components/DishCard.vue';
 import DishEditor from '@/components/DishEditor.vue';
 import CategoryEditor from '@/components/CategoryEditor.vue';
 import LoginDialog from '@/components/LoginDialog.vue';
+import CartFab from '@/components/CartFab.vue';
+import AppTabbar from '@/components/AppTabbar.vue';
 import type { Dish } from '@/types';
 
 const router = useRouter();
@@ -294,7 +302,7 @@ async function onContactSelect(action: { name: string; contactType: string }) {
 
 .admin-add-dish-fixed {
   position: fixed;
-  bottom: 0;
+  bottom: 50px;
   left: 0;
   right: 0;
   padding: var(--space-md);
@@ -306,14 +314,14 @@ async function onContactSelect(action: { name: string; contactType: string }) {
 
 .tab-content {
   padding: var(--space-md);
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   min-height: 50vh;
 }
 
 .contact-fab {
   position: fixed;
   right: var(--space-lg);
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -331,6 +339,11 @@ async function onContactSelect(action: { name: string; contactType: string }) {
 }
 
 .contact-fab.with-admin-bar {
-  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+}
+
+.nav-right {
+  display: flex;
+  gap: var(--space-xs);
 }
 </style>

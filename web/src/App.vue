@@ -71,18 +71,6 @@ import { RouterView } from 'vue-router';
 
   /* 价格色 */
   --color-price: #c0392b;
-
-  /* 覆盖 Vant 主题变量 */
-  --van-primary-color: #c0392b;
-  --van-danger-color: #d63031;
-  --van-tab-active-text-color: #c0392b;
-  --van-tabs-bottom-bar-color: #c0392b;
-  --van-nav-bar-background: #ffffff;
-  --van-popup-background: #ffffff;
-  --van-field-input-background: #f8f6f3;
-  --van-button-primary-background: #c0392b;
-  --van-button-primary-border-color: #c0392b;
-  --van-tag-primary-color: #c0392b;
 }
 
 * {
