@@ -1,65 +1,3 @@
-<script setup lang="ts">
-import { ref, watch } from 'vue';
-import { Dialog, Field, Button as VanButton } from 'vant';
-
-interface Props {
-  visible: boolean;
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<{
-  (e: 'update:visible', val: boolean): void;
-  (e: 'success'): void;
-}>();
-
-const secret = ref('');
-const showPassword = ref(false);
-const loading = ref(false);
-const errorMsg = ref('');
-
-watch(() => props.visible, (val) => {
-  if (val) {
-    const saved = localStorage.getItem('admin-secret');
-    secret.value = saved || '';
-    showPassword.value = false;
-    loading.value = false;
-    errorMsg.value = '';
-  }
-});
-
-async function handleConfirm() {
-  if (!secret.value.trim()) {
-    errorMsg.value = '请输入管理员密钥';
-    return;
-  }
-
-  loading.value = true;
-  errorMsg.value = '';
-
-  try {
-    const res = await fetch('/api/admin/check', {
-      headers: { 'x-admin-secret': secret.value.trim() },
-    });
-
-    if (res.ok) {
-      localStorage.setItem('admin-secret', secret.value.trim());
-      emit('update:visible', false);
-      emit('success');
-    } else {
-      errorMsg.value = '密钥错误，请重试';
-    }
-  } catch {
-    errorMsg.value = '网络错误，请重试';
-  } finally {
-    loading.value = false;
-  }
-}
-
-function handleCancel() {
-  emit('update:visible', false);
-}
-</script>
-
 <template>
   <Dialog
     :show="visible"
@@ -85,6 +23,71 @@ function handleCancel() {
     </div>
   </Dialog>
 </template>
+
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { Dialog, Field, Button as VanButton } from 'vant';
+
+interface Props {
+  visible: boolean;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: 'update:visible', val: boolean): void;
+  (e: 'success'): void;
+}>();
+
+const secret = ref('');
+const showPassword = ref(false);
+const loading = ref(false);
+const errorMsg = ref('');
+
+watch(
+  () => props.visible,
+  val => {
+    if (val) {
+      const saved = localStorage.getItem('admin-secret');
+      secret.value = saved || '';
+      showPassword.value = false;
+      loading.value = false;
+      errorMsg.value = '';
+    }
+  }
+);
+
+async function handleConfirm() {
+  if (!secret.value.trim()) {
+    errorMsg.value = '请输入管理员密钥';
+    return;
+  }
+
+  loading.value = true;
+  errorMsg.value = '';
+
+  try {
+    const res = await fetch('/api/admin/check', {
+      headers: { 'x-admin-secret': secret.value.trim() }
+    });
+
+    if (res.ok) {
+      localStorage.setItem('admin-secret', secret.value.trim());
+      emit('update:visible', false);
+      emit('success');
+    } else {
+      errorMsg.value = '密钥错误，请重试';
+    }
+  } catch {
+    errorMsg.value = '网络错误，请重试';
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleCancel() {
+  emit('update:visible', false);
+}
+</script>
 
 <style scoped>
 .login-form {

@@ -1,3 +1,52 @@
+<template>
+  <VanPopup :show="visible" position="bottom" round closeable close-icon="cross" :style="{ maxHeight: '85vh' }" @close="emit('close')">
+    <div class="dish-editor">
+      <div class="editor-header">{{ dish ? '编辑菜品' : '新增菜品' }}</div>
+      <div class="editor-body">
+        <VanField
+          v-model="selectedCategoryName"
+          is-link
+          readonly
+          label="分类"
+          placeholder="请选择分类"
+          input-align="right"
+          @click="showCategoryPicker = true"
+        />
+        <VanField v-model="form.name" label="菜品名称" placeholder="请输入菜品名称" input-align="right" />
+        <VanField
+          v-model="form.description"
+          label="描述"
+          type="textarea"
+          placeholder="请输入菜品描述"
+          input-align="right"
+          rows="2"
+          autosize
+        />
+        <VanField v-model.number="form.price" label="价格" type="number" placeholder="请输入价格" input-align="right" />
+        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="right" />
+        <div class="form-item-image">
+          <div class="image-label">菜品图片</div>
+          <ImageUploader :imageUrl="form.image_url" :isAdmin="isAdmin" @upload="handleImageUploaded" @remove="form.image_url = ''" />
+        </div>
+      </div>
+
+      <div class="editor-footer">
+        <VanButton block @click="emit('close')">取消</VanButton>
+        <VanButton block type="primary" @click="handleSave">保存</VanButton>
+      </div>
+    </div>
+  </VanPopup>
+
+  <VanPopup :show="showCategoryPicker" round position="bottom" @close="showCategoryPicker = false">
+    <VanPicker
+      :columns="categoryColumns"
+      :model-value="[form.category_id]"
+      @confirm="onCategoryConfirm"
+      @cancel="showCategoryPicker = false"
+    />
+  </VanPopup>
+</template>
+
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { showToast, Popup as VanPopup, Field as VanField, Button as VanButton, Picker as VanPicker } from 'vant';
@@ -105,55 +154,6 @@ function handleSave() {
   });
 }
 </script>
-
-<template>
-  <VanPopup :show="visible" position="bottom" round closeable close-icon="cross" :style="{ maxHeight: '85vh' }" @close="emit('close')">
-    <div class="dish-editor">
-      <div class="editor-header">{{ dish ? '编辑菜品' : '新增菜品' }}</div>
-      <div class="editor-body">
-        <VanField
-          v-model="selectedCategoryName"
-          is-link
-          readonly
-          label="分类"
-          placeholder="请选择分类"
-          input-align="right"
-          @click="showCategoryPicker = true"
-        />
-        <VanField v-model="form.name" label="菜品名称" placeholder="请输入菜品名称" input-align="right" />
-        <VanField
-          v-model="form.description"
-          label="描述"
-          type="textarea"
-          placeholder="请输入菜品描述"
-          input-align="right"
-          rows="2"
-          autosize
-        />
-        <VanField v-model.number="form.price" label="价格" type="number" placeholder="请输入价格" input-align="right" />
-        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="right" />
-        <div class="form-item-image">
-          <div class="image-label">菜品图片</div>
-          <ImageUploader :imageUrl="form.image_url" :isAdmin="isAdmin" @upload="handleImageUploaded" @remove="form.image_url = ''" />
-        </div>
-      </div>
-
-      <div class="editor-footer">
-        <VanButton block @click="emit('close')">取消</VanButton>
-        <VanButton block type="primary" @click="handleSave">保存</VanButton>
-      </div>
-    </div>
-  </VanPopup>
-
-  <VanPopup :show="showCategoryPicker" round position="bottom" @close="showCategoryPicker = false">
-    <VanPicker
-      :columns="categoryColumns"
-      :model-value="[form.category_id]"
-      @confirm="onCategoryConfirm"
-      @cancel="showCategoryPicker = false"
-    />
-  </VanPopup>
-</template>
 
 <style scoped>
 .dish-editor {

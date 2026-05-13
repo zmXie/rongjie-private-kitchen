@@ -1,3 +1,32 @@
+<template>
+  <div class="dish-detail-page">
+    <NavBar title="菜品详情" left-arrow :border="false" @click-left="onClickLeft" />
+
+    <template v-if="dish">
+      <div class="detail-hero">
+        <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="hero-image" @click="showPreview" />
+        <div v-else class="hero-placeholder">
+          <VanIcon name="photo-o" size="64" color="var(--color-text-placeholder)" />
+        </div>
+      </div>
+
+      <div class="detail-info">
+        <div class="detail-name">{{ dish.name }}</div>
+        <div class="detail-meta">
+          <VanTag plain type="primary">{{ categoryName }}</VanTag>
+          <span class="detail-price">¥{{ dish.price.toFixed(2) }}</span>
+        </div>
+        <div class="detail-desc">
+          <div class="desc-title">菜品介绍</div>
+          <p>{{ dish.description || '暂无描述' }}</p>
+        </div>
+      </div>
+    </template>
+
+    <VanEmpty v-else description="菜品不存在" />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -40,40 +69,6 @@ function showPreview() {
   }
 }
 </script>
-
-<template>
-  <div class="dish-detail-page">
-    <NavBar
-      title="菜品详情"
-      left-arrow
-      :border="false"
-      @click-left="onClickLeft"
-    />
-
-    <template v-if="dish">
-      <div class="detail-hero">
-        <img v-if="dish.image_url" :src="dish.image_url" :alt="dish.name" class="hero-image" @click="showPreview" />
-        <div v-else class="hero-placeholder">
-          <VanIcon name="photo-o" size="64" color="var(--color-text-placeholder)" />
-        </div>
-      </div>
-
-      <div class="detail-info">
-        <div class="detail-name">{{ dish.name }}</div>
-        <div class="detail-meta">
-          <VanTag plain type="primary">{{ categoryName }}</VanTag>
-          <span class="detail-price">¥{{ dish.price.toFixed(2) }}</span>
-        </div>
-        <div class="detail-desc">
-          <div class="desc-title">菜品介绍</div>
-          <p>{{ dish.description || '暂无描述' }}</p>
-        </div>
-      </div>
-    </template>
-
-    <VanEmpty v-else description="菜品不存在" />
-  </div>
-</template>
 
 <style scoped>
 .dish-detail-page {

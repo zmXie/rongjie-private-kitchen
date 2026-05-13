@@ -1,21 +1,3 @@
-<script setup lang="ts">
-import { Button as VanButton, Icon as VanIcon } from 'vant';
-import type { Dish } from '@/types';
-
-interface Props {
-  dish: Dish;
-  showActions?: boolean;
-}
-
-defineProps<Props>();
-
-const emit = defineEmits<{
-  (e: 'edit', dish: Dish): void;
-  (e: 'delete', dish: Dish): void;
-  (e: 'click', dish: Dish): void;
-}>();
-</script>
-
 <template>
   <div class="dish-card" @click="emit('click', dish)">
     <div class="dish-thumb">
@@ -37,6 +19,24 @@ const emit = defineEmits<{
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { Button as VanButton, Icon as VanIcon } from 'vant';
+import type { Dish } from '@/types';
+
+interface Props {
+  dish: Dish;
+  showActions?: boolean;
+}
+
+defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: 'edit', dish: Dish): void;
+  (e: 'delete', dish: Dish): void;
+  (e: 'click', dish: Dish): void;
+}>();
+</script>
 
 <style scoped>
 .dish-card {

@@ -1,3 +1,21 @@
+<template>
+  <VanPopup :show="visible" position="bottom" round closeable close-icon="cross" :style="{ maxHeight: '70vh' }" @close="emit('close')">
+    <div class="category-editor">
+      <div class="editor-header">{{ category ? '编辑分类' : '新增分类' }}</div>
+
+      <div class="editor-body">
+        <VanField v-model="form.name" label="分类名称" placeholder="请输入分类名称" input-align="right" />
+        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="right" />
+      </div>
+
+      <div class="editor-footer">
+        <VanButton block @click="emit('close')">取消</VanButton>
+        <VanButton block type="primary" @click="handleSave">保存</VanButton>
+      </div>
+    </div>
+  </VanPopup>
+</template>
+
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { showToast, Popup as VanPopup, Field as VanField, Button as VanButton } from 'vant';
@@ -17,7 +35,7 @@ const emit = defineEmits<{
 
 const form = ref({
   name: '',
-  sort: 0,
+  sort: 0
 });
 
 watch(
@@ -41,43 +59,6 @@ function handleSave() {
   emit('save', { name: form.value.name.trim(), sort: form.value.sort });
 }
 </script>
-
-<template>
-  <VanPopup
-    :show="visible"
-    position="bottom"
-    round
-    closeable
-    close-icon="cross"
-    :style="{ maxHeight: '70vh' }"
-    @close="emit('close')"
-  >
-    <div class="category-editor">
-      <div class="editor-header">{{ category ? '编辑分类' : '新增分类' }}</div>
-
-      <div class="editor-body">
-        <VanField
-          v-model="form.name"
-          label="分类名称"
-          placeholder="请输入分类名称"
-          input-align="right"
-        />
-        <VanField
-          v-model.number="form.sort"
-          label="排序"
-          type="digit"
-          placeholder="数值越小越靠前"
-          input-align="right"
-        />
-      </div>
-
-      <div class="editor-footer">
-        <VanButton block @click="emit('close')">取消</VanButton>
-        <VanButton block type="primary" @click="handleSave">保存</VanButton>
-      </div>
-    </div>
-  </VanPopup>
-</template>
 
 <style scoped>
 .category-editor {

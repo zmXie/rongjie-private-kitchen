@@ -1,3 +1,64 @@
+<template>
+  <div class="home-page">
+    <NavBar title="蓉姐私房菜" :border="true">
+      <template #right>
+        <VanButton v-if="!isAdmin" size="small" type="primary" plain @click="handleLogin">管理</VanButton>
+        <VanButton v-else size="small" type="warning" plain @click="handleLogout">退出</VanButton>
+      </template>
+    </NavBar>
+
+    <Tabs v-model:active="activeCategoryId" shrink swipeable @change="onCategoryChange" class="sticky-tabs">
+      <Tab v-for="category in categoryStore.sortedCategories" :key="category.id" :title="category.name" :name="category.id" />
+    </Tabs>
+
+    <div class="tab-content">
+      <div v-if="isAdmin" class="admin-category-controls">
+        <VanButton size="small" type="primary" plain @click="handleAddCategory">新增分类</VanButton>
+        <VanButton size="small" plain @click="handleEditCategory">编辑</VanButton>
+        <VanButton size="small" type="danger" plain @click="handleDeleteCategory">删除</VanButton>
+      </div>
+
+      <LoadingState v-if="dishStore.loading" />
+      <div v-else-if="currentDishes.length > 0" class="dish-list">
+        <DishCard
+          v-for="dish in currentDishes"
+          :key="dish.id"
+          :dish="dish"
+          :showActions="isAdmin"
+          @click="handleDishClick"
+          @edit="handleEditDish"
+          @delete="handleDeleteDish"
+        />
+      </div>
+      <VanEmpty v-else description="暂无菜品" />
+
+      <div v-if="isAdmin" class="admin-add-dish-fixed">
+        <VanButton block type="primary" icon="plus" @click="handleAddDish">新增菜品</VanButton>
+      </div>
+    </div>
+
+    <DishEditor
+      v-model:visible="showDishEditor"
+      :dish="editingDish"
+      :categories="categoryStore.categories"
+      :isAdmin="isAdmin"
+      :nextSort="nextDishSort"
+      @save="handleSaveDish"
+      @close="showDishEditor = false"
+    />
+
+    <CategoryEditor
+      v-model:visible="showCategoryEditor"
+      :category="editingCategory"
+      :nextSort="nextCategorySort"
+      @save="handleSaveCategory"
+      @close="showCategoryEditor = false"
+    />
+
+    <LoginDialog v-model:visible="showLoginDialog" @success="handleLoginSuccess" />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -9,6 +70,7 @@ import DishCard from '@/components/DishCard.vue';
 import DishEditor from '@/components/DishEditor.vue';
 import CategoryEditor from '@/components/CategoryEditor.vue';
 import LoginDialog from '@/components/LoginDialog.vue';
+import LoadingState from '@/components/LoadingState.vue';
 import type { Dish } from '@/types';
 
 const router = useRouter();
@@ -24,7 +86,9 @@ const editingCategory = ref<any>(null);
 
 const activeCategoryId = computed({
   get: () => categoryStore.activeCategoryId,
-  set: (val) => { categoryStore.activeCategoryId = val; },
+  set: val => {
+    categoryStore.activeCategoryId = val;
+  }
 });
 
 onMounted(async () => {
@@ -157,71 +221,16 @@ function handleDishClick(dish: Dish) {
 }
 </script>
 
-<template>
-  <div class="home-page">
-    <NavBar title="蓉姐私房菜" :border="true">
-      <template #right>
-        <VanButton v-if="!isAdmin" size="small" type="primary" plain @click="handleLogin">管理</VanButton>
-        <VanButton v-else size="small" type="warning" plain @click="handleLogout">退出</VanButton>
-      </template>
-    </NavBar>
-
-
-    <Tabs v-model:active="activeCategoryId" shrink swipeable @change="onCategoryChange">
-      <Tab v-for="category in categoryStore.sortedCategories" :key="category.id" :title="category.name" :name="category.id" />
-    </Tabs>
-
-    <div class="tab-content">
-      <div v-if="isAdmin" class="admin-category-controls">
-        <VanButton size="small" type="primary" plain @click="handleAddCategory">新增分类</VanButton>
-        <VanButton size="small" plain @click="handleEditCategory">编辑</VanButton>
-        <VanButton size="small" type="danger" plain @click="handleDeleteCategory">删除</VanButton>
-      </div>
-
-      <div v-if="currentDishes.length > 0" class="dish-list">
-        <DishCard
-          v-for="dish in currentDishes"
-          :key="dish.id"
-          :dish="dish"
-          :showActions="isAdmin"
-          @click="handleDishClick"
-          @edit="handleEditDish"
-          @delete="handleDeleteDish"
-        />
-      </div>
-      <VanEmpty v-else description="暂无菜品" />
-
-      <div v-if="isAdmin" class="admin-add-dish-fixed">
-        <VanButton block type="primary" icon="plus" @click="handleAddDish">新增菜品</VanButton>
-      </div>
-    </div>
-
-    <DishEditor
-      v-model:visible="showDishEditor"
-      :dish="editingDish"
-      :categories="categoryStore.categories"
-      :isAdmin="isAdmin"
-      :nextSort="nextDishSort"
-      @save="handleSaveDish"
-      @close="showDishEditor = false"
-    />
-
-    <CategoryEditor
-      v-model:visible="showCategoryEditor"
-      :category="editingCategory"
-      :nextSort="nextCategorySort"
-      @save="handleSaveCategory"
-      @close="showCategoryEditor = false"
-    />
-
-    <LoginDialog v-model:visible="showLoginDialog" @success="handleLoginSuccess" />
-  </div>
-</template>
-
 <style scoped>
 .home-page {
   min-height: 100vh;
   background: var(--color-bg-page);
+}
+
+.sticky-tabs {
+  position: sticky;
+  top: 46px;
+  z-index: 99;
 }
 
 .admin-category-controls {
@@ -253,7 +262,7 @@ function handleDishClick(dish: Dish) {
 
 .tab-content {
   padding: var(--space-md);
-  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   min-height: 50vh;
 }
 </style>

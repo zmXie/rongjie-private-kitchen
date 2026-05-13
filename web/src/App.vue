@@ -1,10 +1,10 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router';
-</script>
-
 <template>
   <RouterView />
 </template>
+
+<script setup lang="ts">
+import { RouterView } from 'vue-router';
+</script>
 
 <style>
 :root {
@@ -105,5 +105,12 @@ body,
 
 body {
   overflow-x: hidden;
+}
+
+/* NavBar 通用固定布局 */
+.van-nav-bar {
+  position: sticky !important;
+  top: 0;
+  z-index: 100 !important;
 }
 </style>

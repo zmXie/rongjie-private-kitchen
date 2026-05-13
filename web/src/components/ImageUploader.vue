@@ -1,3 +1,25 @@
+<template>
+  <div class="image-uploader">
+    <input ref="fileInput" type="file" accept="image/*" style="display: none" :disabled="loading" @change="handleFileChange" />
+    <div
+      v-if="!previewUrl && !localPreviewUrl"
+      class="upload-placeholder"
+      :class="{ disabled: loading }"
+      @click="!loading && handleClick()"
+    >
+      <span class="upload-icon">+</span>
+      <span class="upload-text">上传图片</span>
+    </div>
+    <div v-else class="preview-container">
+      <img :src="localPreviewUrl || previewUrl" alt="preview" class="preview-image" />
+      <div v-if="loading" class="loading-overlay">
+        <VanLoading type="spinner" color="#fff" size="20" />
+      </div>
+      <div v-if="!loading" class="remove-btn" @click="handleRemove">×</div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import imageCompression from 'browser-image-compression';
@@ -82,23 +104,6 @@ async function handleFileChange(e: Event) {
   }
 }
 </script>
-
-<template>
-  <div class="image-uploader">
-    <input ref="fileInput" type="file" accept="image/*" style="display: none" :disabled="loading" @change="handleFileChange" />
-    <div v-if="!previewUrl && !localPreviewUrl" class="upload-placeholder" :class="{ disabled: loading }" @click="!loading && handleClick()">
-      <span class="upload-icon">+</span>
-      <span class="upload-text">上传图片</span>
-    </div>
-    <div v-else class="preview-container">
-      <img :src="localPreviewUrl || previewUrl" alt="preview" class="preview-image" />
-      <div v-if="loading" class="loading-overlay">
-        <VanLoading type="spinner" color="#fff" size="20" />
-      </div>
-      <div v-if="!loading" class="remove-btn" @click="handleRemove">×</div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .image-uploader {

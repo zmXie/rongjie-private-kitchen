@@ -62,3 +62,4 @@ npm workspaces monorepo（`web` + `api`），根目录 `package.json` 脚本委�
 - 图片通过 `POST /api/upload` 上传至 R2，通过 `/r2/:filename`（或自定义 R2 域名）访问
 - 所有 API 路由使用 `/api` 前缀，Vite 开发代理将 `/api` 转发至 8787 端口的 Wrangler 开发服务器
 - 分类和菜品按 `sort ASC, id ASC` 排序
+- vue文件中的 template 应该放在顶部
