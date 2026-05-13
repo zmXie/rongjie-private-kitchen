@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-13T03:38:24.402Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-13T04:32:13.982Z
 > Files: 78 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -85,7 +85,7 @@
 
 ## api/src/
 
-- `index.ts` — API routes: GET, POST, PUT, DELETE (13 endpoints) (~2180 tok)
+- `index.ts` — API routes: GET, POST, PUT, DELETE (13 endpoints) (~2588 tok)
 
 ## database/
 

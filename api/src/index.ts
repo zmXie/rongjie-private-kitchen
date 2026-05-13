@@ -51,6 +51,20 @@ const dishSchema = z.object({
   is_sold_out: z.number().int().optional()
 });
 
+// 从 image_url 中提取 R2 key（文件名），仅匹配本桶域名
+const extractR2Key = (imageUrl: string | null | undefined, publicR2Url: string): string | null => {
+  if (!imageUrl || !publicR2Url) return null;
+  if (!imageUrl.startsWith(publicR2Url + '/')) return null;
+  return imageUrl.slice(publicR2Url.length + 1);
+};
+
+// 从 R2 删除单个图片，失败不阻塞主流程
+const deleteR2Image = async (bucket: R2Bucket, key: string) => {
+  try {
+    await bucket.delete(key);
+  } catch {}
+};
+
 // 管理员认证中间件，校验 x-admin-secret 请求头
 const adminAuth = async (c: any, next: () => Promise<void>) => {
   const secret = c.req.header('x-admin-secret');
@@ -110,10 +124,17 @@ app.put('/api/categories/:id', adminAuth, zValidator('json', categorySchema), as
   return c.json(successResponse(category));
 });
 
-// 删除分类（级联删除该分类下所有菜品）
+// 删除分类（级联删除该分类下所有菜品，并清理 R2 图片）
 app.delete('/api/categories/:id', adminAuth, async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
+
+  // 查出该分类下所有菜品的图片，删除 R2 文件
+  const dishes = await db.prepare('SELECT image_url FROM dishes WHERE category_id = ?').bind(id).all();
+  for (const dish of (dishes.results || [])) {
+    const key = extractR2Key(dish.image_url as string | null, c.env.PUBLIC_R2_URL);
+    if (key) await deleteR2Image(c.env.IMAGES, key);
+  }
 
   await db.prepare('DELETE FROM dishes WHERE category_id = ?').bind(id).run();
   await db.prepare('DELETE FROM categories WHERE id = ?').bind(id).run();
@@ -160,11 +181,20 @@ app.post('/api/dishes', adminAuth, zValidator('json', dishSchema), async c => {
   return c.json(successResponse(dish), 201);
 });
 
-// 更新菜品（仅更新传入的字段）
+// 更新菜品（仅更新传入的字段，更换图片时清理旧图）
 app.put('/api/dishes/:id', adminAuth, zValidator('json', dishSchema.partial()), async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
   const body = c.req.valid('json');
+
+  // 如果更换了图片（新旧 URL 不同），先从 R2 删除旧图
+  if (body.image_url !== undefined) {
+    const old = await db.prepare('SELECT image_url FROM dishes WHERE id = ?').bind(id).first();
+    if (body.image_url !== (old?.image_url ?? '')) {
+      const oldKey = extractR2Key(old?.image_url as string | null, c.env.PUBLIC_R2_URL);
+      if (oldKey) await deleteR2Image(c.env.IMAGES, oldKey);
+    }
+  }
 
   const updates: string[] = [];
   const values: (string | number | null)[] = [];
@@ -219,10 +249,15 @@ app.put('/api/dishes/:id', adminAuth, zValidator('json', dishSchema.partial()), 
   return c.json(successResponse(dish));
 });
 
-// 删除菜品
+// 删除菜品（同时清理 R2 图片）
 app.delete('/api/dishes/:id', adminAuth, async c => {
   const db = c.env.DB;
   const id = c.req.param('id');
+
+  // 查出菜品图片并从 R2 删除
+  const dish = await db.prepare('SELECT image_url FROM dishes WHERE id = ?').bind(id).first();
+  const key = extractR2Key(dish?.image_url as string | null, c.env.PUBLIC_R2_URL);
+  if (key) await deleteR2Image(c.env.IMAGES, key);
 
   await db.prepare('DELETE FROM dishes WHERE id = ?').bind(id).run();
 
