@@ -79,7 +79,7 @@ function getStatusType(status: number) {
 }
 
 function formatTime(time: string) {
-  const d = new Date(time);
+  const d = new Date(time + 'Z');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   const hour = String(d.getHours()).padStart(2, '0');

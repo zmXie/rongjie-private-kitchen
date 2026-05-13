@@ -100,7 +100,7 @@ const isAdmin = computed(() => adminStore.isAdmin);
 
 
 function formatTime(time: string) {
-  return new Date(time).toLocaleString('zh-CN');
+  return new Date(time + 'Z').toLocaleString('zh-CN');
 }
 
 function getDishImage(dishId: number | null) {
