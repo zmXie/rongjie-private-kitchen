@@ -1,0 +1,58 @@
+{
+  "session_id": "",
+  "files_read": {
+    "d:/data/rongjie-private-kitchen/web/package.json": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-13T03:13:07.354Z"
+    },
+    "d:/data/rongjie-private-kitchen/web/src/api/dishes.ts": {
+      "count": 1,
+      "tokens": 277,
+      "first_read": "2026-05-13T03:13:07.462Z"
+    },
+    "d:/data/rongjie-private-kitchen/web/src/api/index.ts": {
+      "count": 1,
+      "tokens": 231,
+      "first_read": "2026-05-13T03:13:07.472Z"
+    },
+    "d:/data/rongjie-private-kitchen/web/vite.config.ts": {
+      "count": 1,
+      "tokens": 110,
+      "first_read": "2026-05-13T03:13:07.481Z"
+    },
+    "d:/data/rongjie-private-kitchen/api/src/index.ts": {
+      "count": 1,
+      "tokens": 2180,
+      "first_read": "2026-05-13T03:13:07.492Z"
+    },
+    "d:/data/rongjie-private-kitchen/api/package.json": {
+      "count": 1,
+      "tokens": 154,
+      "first_read": "2026-05-13T03:13:07.503Z"
+    },
+    "d:/data/rongjie-private-kitchen/database/migrate.sql": {
+      "count": 1,
+      "tokens": 84,
+      "first_read": "2026-05-13T03:13:12.989Z"
+    },
+    "d:/data/rongjie-private-kitchen/web/src/api/config.ts": {
+      "count": 1,
+      "tokens": 46,
+      "first_read": "2026-05-13T03:13:13.094Z"
+    },
+    "d:/data/rongjie-private-kitchen/database/init.sql": {
+      "count": 1,
+      "tokens": 479,
+      "first_read": "2026-05-13T03:13:13.104Z"
+    },
+    "d:/data/rongjie-private-kitchen/.claude/rules/components.md": {
+      "count": 1,
+      "tokens": 365,
+      "first_read": "2026-05-13T03:15:38.612Z"
+    }
+  },
+  "anatomy_hits": 3,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 0
+}

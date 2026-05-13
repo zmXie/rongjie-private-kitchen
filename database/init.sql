@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS dishes (
     image_url TEXT,
     sort INTEGER DEFAULT 0,
     status INTEGER DEFAULT 1,
+    is_recommended INTEGER DEFAULT 0,
+    is_sold_out INTEGER DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
@@ -32,9 +34,9 @@ INSERT INTO categories (name, sort) VALUES ('汤品', 4);
 INSERT INTO categories (name, sort) VALUES ('主食', 5);
 
 -- Insert sample dishes
-INSERT INTO dishes (category_id, name, description, price, image_url, sort) VALUES
-(1, '红烧肉', '精选五花肉，慢火红烧，肥而不腻', 68, '', 1),
-(1, '糖醋排骨', '外酥里嫩，酸甜可口', 58, '', 2),
+INSERT INTO dishes (category_id, name, description, price, image_url, sort, is_recommended) VALUES
+(1, '红烧肉', '精选五花肉，慢火红烧，肥而不腻', 68, '', 1, 1),
+(1, '糖醋排骨', '外酥里嫩，酸甜可口', 58, '', 2, 1),
 (2, '凉拌黄瓜', '清脆爽口，开胃小菜', 18, '', 1),
 (2, '夫妻肺片', '麻辣鲜香，下饭神器', 48, '', 2),
 (3, '宫保鸡丁', '经典川菜，鸡肉嫩滑，花生香脆', 42, '', 1),

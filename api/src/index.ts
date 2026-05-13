@@ -9,6 +9,8 @@ type Env = {
   IMAGES: R2Bucket;
   ADMIN_SECRET: string;
   PUBLIC_R2_URL: string;
+  CONTACT_PHONE: string;
+  CONTACT_WECHAT: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -44,7 +46,9 @@ const dishSchema = z.object({
   price: z.number().positive(),
   image_url: z.string().optional().nullable(),
   sort: z.number().int().optional(),
-  status: z.number().int().optional()
+  status: z.number().int().optional(),
+  is_recommended: z.number().int().optional(),
+  is_sold_out: z.number().int().optional()
 });
 
 // 管理员认证中间件，校验 x-admin-secret 请求头
@@ -145,10 +149,10 @@ app.post('/api/dishes', adminAuth, zValidator('json', dishSchema), async c => {
 
   const result = await db
     .prepare(
-      `INSERT INTO dishes (category_id, name, description, price, image_url, sort, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO dishes (category_id, name, description, price, image_url, sort, status, is_recommended, is_sold_out)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
-    .bind(body.category_id, body.name, body.description || '', body.price, body.image_url || '', body.sort || 0, body.status || 1)
+    .bind(body.category_id, body.name, body.description || '', body.price, body.image_url || '', body.sort || 0, body.status || 1, body.is_recommended || 0, body.is_sold_out || 0)
     .run();
 
   const dish = await db.prepare('SELECT * FROM dishes WHERE id = ?').bind(result.meta.last_row_id).first();
@@ -192,6 +196,14 @@ app.put('/api/dishes/:id', adminAuth, zValidator('json', dishSchema.partial()), 
   if (body.category_id !== undefined) {
     updates.push('category_id = ?');
     values.push(body.category_id);
+  }
+  if (body.is_recommended !== undefined) {
+    updates.push('is_recommended = ?');
+    values.push(body.is_recommended);
+  }
+  if (body.is_sold_out !== undefined) {
+    updates.push('is_sold_out = ?');
+    values.push(body.is_sold_out);
   }
 
   if (updates.length > 0) {
@@ -249,6 +261,14 @@ app.post('/api/upload', adminAuth, async c => {
   const imageUrl = `${c.env.PUBLIC_R2_URL}/${filename}`;
 
   return c.json(successResponse({ url: imageUrl }), 201);
+});
+
+// 获取站点配置（公开接口，如联系方式）
+app.get('/api/config', c => {
+  return c.json(successResponse({
+    phone: c.env.CONTACT_PHONE || '',
+    wechat: c.env.CONTACT_WECHAT || ''
+  }));
 });
 
 // 健康检查

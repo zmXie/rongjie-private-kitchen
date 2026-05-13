@@ -9,21 +9,31 @@
           readonly
           label="分类"
           placeholder="请选择分类"
-          input-align="right"
+          input-align="left"
           @click="showCategoryPicker = true"
         />
-        <VanField v-model="form.name" label="菜品名称" placeholder="请输入菜品名称" input-align="right" />
+        <VanField v-model="form.name" label="菜品名称" placeholder="请输入菜品名称" input-align="left" />
         <VanField
           v-model="form.description"
           label="描述"
           type="textarea"
           placeholder="请输入菜品描述"
-          input-align="right"
+          input-align="left"
           rows="2"
           autosize
         />
-        <VanField v-model.number="form.price" label="价格" type="number" placeholder="请输入价格" input-align="right" />
-        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="right" />
+        <VanField v-model.number="form.price" label="价格" type="number" placeholder="请输入价格" input-align="left" />
+        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="left" />
+        <VanCell title="招牌推荐" center>
+          <template #right-icon>
+            <VanSwitch v-model="form.is_recommended" size="20px" active-color="#c0392b" />
+          </template>
+        </VanCell>
+        <VanCell title="今日售罄" center>
+          <template #right-icon>
+            <VanSwitch v-model="form.is_sold_out" size="20px" active-color="#636e72" />
+          </template>
+        </VanCell>
         <div class="form-item-image">
           <div class="image-label">菜品图片</div>
           <ImageUploader :imageUrl="form.image_url" :isAdmin="isAdmin" @upload="handleImageUploaded" @remove="form.image_url = ''" />
@@ -49,7 +59,15 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { showToast, Popup as VanPopup, Field as VanField, Button as VanButton, Picker as VanPicker } from 'vant';
+import {
+  showToast,
+  Popup as VanPopup,
+  Field as VanField,
+  Button as VanButton,
+  Picker as VanPicker,
+  Cell as VanCell,
+  Switch as VanSwitch
+} from 'vant';
 import type { Dish, Category } from '@/types';
 import ImageUploader from './ImageUploader.vue';
 
@@ -73,6 +91,8 @@ const emit = defineEmits<{
       price: number;
       image_url: string;
       sort: number;
+      is_recommended: number;
+      is_sold_out: number;
     }
   ): void;
 }>();
@@ -83,7 +103,9 @@ const form = ref({
   description: '',
   price: 0,
   image_url: '',
-  sort: 0
+  sort: 0,
+  is_recommended: false,
+  is_sold_out: false
 });
 
 const showCategoryPicker = ref(false);
@@ -105,7 +127,9 @@ watch(
         description: props.dish.description || '',
         price: props.dish.price,
         image_url: props.dish.image_url || '',
-        sort: props.dish.sort
+        sort: props.dish.sort,
+        is_recommended: !!props.dish.is_recommended,
+        is_sold_out: !!props.dish.is_sold_out
       };
     } else if (val && props.categories.length > 0) {
       form.value = {
@@ -114,7 +138,9 @@ watch(
         description: '',
         price: 0,
         image_url: '',
-        sort: props.nextSort ?? 0
+        sort: props.nextSort ?? 0,
+        is_recommended: false,
+        is_sold_out: false
       };
     }
   }
@@ -150,7 +176,9 @@ function handleSave() {
     description: form.value.description.trim(),
     price: form.value.price,
     image_url: form.value.image_url,
-    sort: form.value.sort
+    sort: form.value.sort,
+    is_recommended: form.value.is_recommended ? 1 : 0,
+    is_sold_out: form.value.is_sold_out ? 1 : 0
   });
 }
 </script>

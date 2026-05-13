@@ -28,6 +28,8 @@ export const useDishStore = defineStore('dishes', () => {
     price: number;
     image_url?: string;
     sort?: number;
+    is_recommended?: number;
+    is_sold_out?: number;
   }) {
     const res = await createDish(data);
     dishes.value.push(res);

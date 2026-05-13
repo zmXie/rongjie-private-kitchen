@@ -14,6 +14,8 @@ export interface Dish {
   image_url: string;
   sort: number;
   status: number;
+  is_recommended: number;
+  is_sold_out: number;
   created_at: string;
 }
 

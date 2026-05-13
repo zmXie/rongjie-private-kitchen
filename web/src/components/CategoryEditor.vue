@@ -4,8 +4,8 @@
       <div class="editor-header">{{ category ? '编辑分类' : '新增分类' }}</div>
 
       <div class="editor-body">
-        <VanField v-model="form.name" label="分类名称" placeholder="请输入分类名称" input-align="right" />
-        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="right" />
+        <VanField v-model="form.name" label="分类名称" placeholder="请输入分类名称" input-align="left" />
+        <VanField v-model.number="form.sort" label="排序" type="digit" placeholder="数值越小越靠前" input-align="left" />
       </div>
 
       <div class="editor-footer">

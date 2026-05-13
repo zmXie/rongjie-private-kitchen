@@ -37,6 +37,18 @@
       </div>
     </div>
 
+    <div v-if="hasContact" class="contact-fab" :class="{ 'with-admin-bar': isAdmin }" @click="showContactSheet = true">
+      <VanIcon name="phone-o" size="22" color="#fff" />
+    </div>
+
+    <VanActionSheet
+      v-model:show="showContactSheet"
+      :actions="contactActions"
+      cancel-text="取消"
+      close-on-click-action
+      @select="onContactSelect"
+    />
+
     <DishEditor
       v-model:visible="showDishEditor"
       :dish="editingDish"
@@ -62,10 +74,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { showToast, showConfirmDialog, NavBar, Tab, Tabs, Button as VanButton, Empty as VanEmpty } from 'vant';
+import { showToast, showConfirmDialog, NavBar, Tab, Tabs, Button as VanButton, Empty as VanEmpty, Icon as VanIcon, ActionSheet as VanActionSheet } from 'vant';
 import { useCategoryStore } from '@/stores/categories';
 import { useDishStore } from '@/stores/dishes';
 import { useAdminStore } from '@/stores/admin';
+import { getConfig } from '@/api/config';
 import DishCard from '@/components/DishCard.vue';
 import DishEditor from '@/components/DishEditor.vue';
 import CategoryEditor from '@/components/CategoryEditor.vue';
@@ -81,8 +94,12 @@ const adminStore = useAdminStore();
 const showDishEditor = ref(false);
 const showCategoryEditor = ref(false);
 const showLoginDialog = ref(false);
+const showContactSheet = ref(false);
 const editingDish = ref<any>(null);
 const editingCategory = ref<any>(null);
+
+const contactPhone = ref('');
+const contactWechat = ref('');
 
 const activeCategoryId = computed({
   get: () => categoryStore.activeCategoryId,
@@ -97,9 +114,29 @@ onMounted(async () => {
   if (!activeCategoryId.value && categoryStore.categories.length > 0) {
     activeCategoryId.value = categoryStore.categories[0].id;
   }
+  try {
+    const config = await getConfig();
+    contactPhone.value = config.phone || '';
+    contactWechat.value = config.wechat || '';
+  } catch {
+    // Config endpoint may not be available, ignore
+  }
 });
 
 const isAdmin = computed(() => adminStore.isAdmin);
+
+const hasContact = computed(() => contactPhone.value || contactWechat.value);
+
+const contactActions = computed(() => {
+  const actions: { name: string; contactType: string }[] = [];
+  if (contactPhone.value) {
+    actions.push({ name: `拨打电话 ${contactPhone.value}`, contactType: 'phone' });
+  }
+  if (contactWechat.value) {
+    actions.push({ name: `复制微信号 ${contactWechat.value}`, contactType: 'wechat' });
+  }
+  return actions;
+});
 
 const currentDishes = computed(() => {
   if (!activeCategoryId.value) return [];
@@ -219,6 +256,19 @@ function handleLoginSuccess() {
 function handleDishClick(dish: Dish) {
   router.push({ name: 'dish-detail', params: { id: dish.id } });
 }
+
+async function onContactSelect(action: { name: string; contactType: string }) {
+  if (action.contactType === 'phone' && contactPhone.value) {
+    window.location.href = `tel:${contactPhone.value}`;
+  } else if (action.contactType === 'wechat' && contactWechat.value) {
+    try {
+      await navigator.clipboard.writeText(contactWechat.value);
+      showToast('微信号已复制');
+    } catch {
+      showToast('复制失败，请手动复制');
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -264,5 +314,29 @@ function handleDishClick(dish: Dish) {
   padding: var(--space-md);
   padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   min-height: 50vh;
+}
+
+.contact-fab {
+  position: fixed;
+  right: var(--space-lg);
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(192, 57, 43, 0.4);
+  z-index: 90;
+  transition: transform 0.2s ease, bottom 0.2s ease;
+}
+
+.contact-fab:active {
+  transform: scale(0.92);
+}
+
+.contact-fab.with-admin-bar {
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 }
 </style>

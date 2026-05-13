@@ -14,6 +14,8 @@ export const createDish = (data: {
   image_url?: string;
   sort?: number;
   status?: number;
+  is_recommended?: number;
+  is_sold_out?: number;
 }) => api.post<never, Dish>('/dishes', data);
 
 export const updateDish = (id: number, data: Partial<Dish>) =>
