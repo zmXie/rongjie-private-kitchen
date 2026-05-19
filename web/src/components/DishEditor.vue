@@ -77,6 +77,7 @@ interface Props {
   categories: Category[];
   isAdmin?: boolean;
   nextSort?: number;
+  currentCategoryId?: number;
 }
 
 const props = defineProps<Props>();
@@ -133,7 +134,7 @@ watch(
       };
     } else if (val && props.categories.length > 0) {
       form.value = {
-        category_id: props.categories[0].id,
+        category_id: props.currentCategoryId ?? props.categories[0].id,
         name: '',
         description: '',
         price: 0,

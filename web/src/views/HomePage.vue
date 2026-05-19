@@ -53,6 +53,7 @@
     <DishEditor
       v-model:visible="showDishEditor"
       :dish="editingDish"
+      :currentCategoryId="Number(activeCategoryId)"
       :categories="categoryStore.categories"
       :isAdmin="isAdmin"
       :nextSort="nextDishSort"
