@@ -12,9 +12,9 @@
           <VanStep>已确认</VanStep>
           <VanStep>已完成</VanStep>
         </VanSteps>
-        <div v-else class="progress-cancelled">
+        <div v-else class="progress-rejected">
           <VanIcon name="close" size="20" color="var(--color-text-placeholder)" />
-          <span>已取消</span>
+          <span>已拒绝</span>
         </div>
       </div>
 
@@ -28,6 +28,10 @@
           <div class="section-row">
             <span class="section-label">下单时间</span>
             <span class="section-value">{{ formatTime(order.created_at) }}</span>
+          </div>
+          <div v-if="order.status === 3 && order.reject_reason" class="section-row">
+            <span class="section-label">拒绝原因</span>
+            <span class="section-value section-value--danger">{{ order.reject_reason }}</span>
           </div>
         </div>
 
@@ -64,25 +68,91 @@
             </div>
           </div>
         </div>
+
+        <!-- 评价入口（已完成且未评价） -->
+        <div v-if="order.status === 2 && !order.rating" class="section-card review-entry">
+          <VanButton type="primary" round block @click="openReviewDialog">
+            <VanIcon name="star-o" size="16" />
+            评价本次用餐
+          </VanButton>
+        </div>
+
+        <!-- 已评价显示 -->
+        <div v-if="order.rating" class="section-card review-display">
+          <div class="section-header">用餐评价</div>
+          <div class="review-stars">
+            <VanRate v-model="order.rating" readonly void-icon="star-o" color="#f5a623" void-color="#eee" size="20" />
+          </div>
+          <div v-if="order.review" class="review-text">{{ order.review }}</div>
+        </div>
       </div>
 
       <!-- 管理员操作 -->
       <div v-if="isAdmin && order.status <= 1" class="order-actions">
-        <VanButton type="default" round block @click="handleUpdateStatus(3)">取消订单</VanButton>
+        <VanButton type="default" round block @click="handleReject">拒绝接单</VanButton>
         <VanButton v-if="order.status === 0" type="primary" round block @click="handleUpdateStatus(1)">确认接单</VanButton>
         <VanButton v-if="order.status === 1" type="primary" round block @click="handleUpdateStatus(2)">标记完成</VanButton>
       </div>
     </template>
 
     <VanEmpty v-else-if="!loading" description="订单不存在" />
+
+    <!-- 拒绝接单弹窗 -->
+    <VanDialog v-model:show="showRejectDialog" title="拒绝接单" :show-confirm-button="false" :close-on-click-overlay="true">
+      <div class="reject-form">
+        <VanRadioGroup v-model="rejectReason">
+          <div v-for="reason in PRESET_REASONS" :key="reason" class="reject-option">
+            <VanRadio :name="reason">{{ reason }}</VanRadio>
+          </div>
+        </VanRadioGroup>
+        <VanField
+          v-if="rejectReason === '其他'"
+          v-model="rejectCustomReason"
+          placeholder="请输入具体原因"
+          maxlength="100"
+          show-word-limit
+        />
+        <div class="reject-actions">
+          <VanButton block @click="showRejectDialog = false">取消</VanButton>
+          <VanButton block type="primary" @click="confirmReject">确定</VanButton>
+        </div>
+      </div>
+    </VanDialog>
+
+    <!-- 评价弹窗 -->
+    <VanDialog v-model:show="showReviewDialog" title="评价用餐" :show-confirm-button="false" :close-on-click-overlay="true">
+      <div class="review-form">
+        <div class="review-form-rating">
+          <span class="review-form-label">评分</span>
+          <VanRate v-model="reviewRating" void-icon="star-o" color="#f5a623" void-color="#eee" size="28" />
+        </div>
+        <VanField
+          v-model="reviewText"
+          type="textarea"
+          placeholder="分享您的用餐体验（选填）"
+          rows="3"
+          maxlength="500"
+          show-word-limit
+        />
+        <div class="review-form-actions">
+          <VanButton block @click="showReviewDialog = false">取消</VanButton>
+          <VanButton block type="primary" :loading="submittingReview" @click="submitReviewHandler">提交评价</VanButton>
+        </div>
+      </div>
+    </VanDialog>
   </PageContainer>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Icon as VanIcon, Button as VanButton, Empty as VanEmpty, Steps as VanSteps, Step as VanStep, showToast, showConfirmDialog } from 'vant';
-import { getOrder, updateOrderStatus } from '@/api/orders';
+import {
+  Icon as VanIcon, Button as VanButton, Empty as VanEmpty,
+  Steps as VanSteps, Step as VanStep, Dialog as VanDialog,
+  RadioGroup as VanRadioGroup, Radio as VanRadio, Field as VanField,
+  Rate as VanRate, showToast
+} from 'vant';
+import { getOrder, updateOrderStatus, submitReview } from '@/api/orders';
 import { useAdminStore } from '@/stores/admin';
 import { useDishStore } from '@/stores/dishes';
 import PageContainer from '@/components/PageContainer.vue';
@@ -98,6 +168,15 @@ const loading = ref(true);
 
 const isAdmin = computed(() => adminStore.isAdmin);
 
+const PRESET_REASONS = ['食材不足', '时间冲突', '已打烊', '其他'];
+const showRejectDialog = ref(false);
+const rejectReason = ref('');
+const rejectCustomReason = ref('');
+
+const showReviewDialog = ref(false);
+const reviewRating = ref(5);
+const reviewText = ref('');
+const submittingReview = ref(false);
 
 function formatTime(time: string) {
   return new Date(time + 'Z').toLocaleString('zh-CN');
@@ -131,20 +210,61 @@ onMounted(async () => {
   }
 });
 
+function handleReject() {
+  rejectReason.value = '';
+  rejectCustomReason.value = '';
+  showRejectDialog.value = true;
+}
+
+async function confirmReject() {
+  if (!order.value) return;
+  const reason = rejectReason.value === '其他'
+    ? rejectCustomReason.value.trim()
+    : rejectReason.value;
+  if (!reason) {
+    showToast('请选择或输入拒绝原因');
+    return;
+  }
+  try {
+    order.value = await updateOrderStatus(order.value.id, 3, reason);
+    showRejectDialog.value = false;
+    showToast('已拒绝接单');
+  } catch (e: any) {
+    showToast(e.message || '操作失败');
+  }
+}
+
 async function handleUpdateStatus(status: number) {
   if (!order.value) return;
-  if (status === 3) {
-    try {
-      await showConfirmDialog({ title: '确认取消', message: '确定要取消该订单吗？' });
-    } catch {
-      return;
-    }
-  }
   try {
     order.value = await updateOrderStatus(order.value.id, status);
     showToast('状态已更新');
   } catch (e: any) {
     showToast(e.message || '更新失败');
+  }
+}
+
+function openReviewDialog() {
+  reviewRating.value = 5;
+  reviewText.value = '';
+  showReviewDialog.value = true;
+}
+
+async function submitReviewHandler() {
+  if (!order.value) return;
+  if (submittingReview.value) return;
+  submittingReview.value = true;
+  try {
+    order.value = await submitReview(order.value.id, {
+      rating: reviewRating.value,
+      review: reviewText.value.trim() || undefined
+    });
+    showReviewDialog.value = false;
+    showToast('评价成功');
+  } catch (e: any) {
+    showToast(e.message || '评价失败');
+  } finally {
+    submittingReview.value = false;
   }
 }
 
@@ -189,7 +309,7 @@ async function handleShare() {
   background: var(--color-bg-card);
 }
 
-.progress-cancelled {
+.progress-rejected {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,6 +344,10 @@ async function handleShare() {
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
+}
+
+.section-value--danger {
+  color: var(--color-danger);
 }
 
 .section-header {
@@ -369,5 +493,65 @@ async function handleShare() {
 
 .order-actions .van-button {
   flex: 1;
+}
+
+/* 拒绝接单弹窗 */
+.reject-form {
+  padding: var(--space-sm) 0 0;
+}
+
+.reject-option {
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.reject-actions {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+/* 评价 */
+.review-entry {
+  text-align: center;
+}
+
+.review-entry .van-button .van-icon {
+  margin-right: var(--space-xs);
+}
+
+.review-stars {
+  padding: var(--space-sm) 0;
+}
+
+.review-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.review-form {
+  padding: var(--space-sm) 0 0;
+}
+
+.review-form-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.review-form-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+
+.review-form-actions {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg);
 }
 </style>

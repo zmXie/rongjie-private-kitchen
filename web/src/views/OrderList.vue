@@ -5,7 +5,7 @@
       <Tab title="待确认" name="0" />
       <Tab title="已确认" name="1" />
       <Tab title="已完成" name="2" />
-      <Tab title="已取消" name="3" />
+      <Tab title="已拒绝" name="3" />
     </Tabs>
 
     <div class="order-list-content">
@@ -35,6 +35,15 @@
               <span class="card-time">{{ formatTime(order.created_at) }}</span>
               <span class="card-total">¥{{ order.total_price.toFixed(2) }}</span>
             </div>
+
+            <div v-if="order.status === 3 && order.reject_reason" class="card-reject-reason">
+              <VanIcon name="info-o" size="12" color="var(--color-text-placeholder)" />
+              <span>{{ order.reject_reason }}</span>
+            </div>
+
+            <div v-if="order.rating" class="card-rating">
+              <VanRate v-model="order.rating" readonly size="12" color="#f5a623" void-color="#eee" void-icon="star-o" />
+            </div>
           </div>
         </div>
       </div>
@@ -49,7 +58,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Tab, Tabs, Tag as VanTag, Empty as VanEmpty, Loading as VanLoading, Icon as VanIcon, showToast } from 'vant';
+import { Tab, Tabs, Tag as VanTag, Empty as VanEmpty, Loading as VanLoading, Icon as VanIcon, Rate as VanRate, showToast } from 'vant';
 import { getOrders } from '@/api/orders';
 import { useDishStore } from '@/stores/dishes';
 import PageContainer from '@/components/PageContainer.vue';
@@ -67,7 +76,7 @@ const STATUS_MAP: Record<number, { text: string; type: string }> = {
   0: { text: '待确认', type: 'warning' },
   1: { text: '已确认', type: 'primary' },
   2: { text: '已完成', type: 'success' },
-  3: { text: '已取消', type: 'default' }
+  3: { text: '已拒绝', type: 'default' }
 };
 
 function getStatusText(status: number) {
@@ -242,5 +251,18 @@ onMounted(async () => {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-price);
+}
+
+.card-reject-reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-placeholder);
+  margin-top: var(--space-xs);
+}
+
+.card-rating {
+  margin-top: var(--space-xs);
 }
 </style>

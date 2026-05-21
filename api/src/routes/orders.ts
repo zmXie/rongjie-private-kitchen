@@ -19,7 +19,13 @@ const orderSchema = z.object({
 });
 
 const orderStatusSchema = z.object({
-  status: z.number().int().min(0).max(3)
+  status: z.number().int().min(0).max(3),
+  reject_reason: z.string().optional()
+});
+
+const reviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  review: z.string().max(500).optional()
 });
 
 const app = new Hono<{ Bindings: Env }>();
@@ -103,12 +109,44 @@ app.put('/:id/status', adminAuth, zValidator('json', orderStatusSchema), async c
     return c.json(errorResponse('Order not found'), 404);
   }
 
-  await db.prepare('UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(body.status, id).run();
+  if (body.status === 3 && !body.reject_reason?.trim()) {
+    return c.json(errorResponse('拒绝接单必须填写原因'), 400);
+  }
+
+  const rejectReason = body.status === 3 ? body.reject_reason!.trim() : null;
+  await db.prepare('UPDATE orders SET status = ?, reject_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+    .bind(body.status, rejectReason, id).run();
 
   const order = await db.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first();
   const items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(id).all();
 
   return c.json(successResponse({ ...order, items: items.results || [] }));
+});
+
+/** 提交评价（公开） */
+app.post('/:id/review', zValidator('json', reviewSchema), async c => {
+  const db = c.env.DB;
+  const id = c.req.param('id');
+  const body = c.req.valid('json');
+
+  const order: any = await db.prepare('SELECT status, rating FROM orders WHERE id = ?').bind(id).first();
+  if (!order) {
+    return c.json(errorResponse('订单不存在'), 404);
+  }
+  if (order.status !== 2) {
+    return c.json(errorResponse('只能评价已完成的订单'), 400);
+  }
+  if (order.rating !== null) {
+    return c.json(errorResponse('该订单已评价'), 400);
+  }
+
+  await db.prepare('UPDATE orders SET rating = ?, review = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+    .bind(body.rating, body.review || null, id).run();
+
+  const updated = await db.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first();
+  const items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(id).all();
+
+  return c.json(successResponse({ ...updated, items: items.results || [] }));
 });
 
 export default app;

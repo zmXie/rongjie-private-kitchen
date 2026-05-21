@@ -26,6 +26,9 @@ export interface Order {
   total_price: number;
   created_at: string;
   updated_at: string;
+  reject_reason: string | null;
+  rating: number | null;
+  review: string | null;
   items?: OrderItem[];
 }
 

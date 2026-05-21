@@ -15,5 +15,8 @@ export const getOrders = (status?: number) => {
   return api.get<never, Order[]>('/orders', { params });
 };
 
-export const updateOrderStatus = (id: number, status: number) =>
-  api.put<never, Order>(`/orders/${id}/status`, { status });
+export const updateOrderStatus = (id: number, status: number, reject_reason?: string) =>
+  api.put<never, Order>(`/orders/${id}/status`, { status, reject_reason });
+
+export const submitReview = (id: number, data: { rating: number; review?: string }) =>
+  api.post<never, Order>(`/orders/${id}/review`, data);

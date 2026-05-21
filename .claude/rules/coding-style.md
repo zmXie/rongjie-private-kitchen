@@ -11,20 +11,20 @@
 
 Git 提交规范使用 `/auto-commit` skill。
 
-| 类型       | 规则             | 示例              |
-| ---------- | ---------------- | ----------------- |
-| 组件文件   | PascalCase       | `DishCard.vue`    |
-| 视图文件   | PascalCase       | `HomePage.vue`    |
-| 组合式函数 | use + Pascal     | `useApi.ts`       |
-| Store      | camelCase        | `dishes.ts`       |
-| API 模块   | camelCase        | `dishes.ts`       |
-| 类型文件   | index.ts         | `types/index.ts`  |
-| 变量       | camelCase        | `dishList`        |
-| 方法       | handle + camel   | `handleDelete`    |
+| 类型       | 规则           | 示例             |
+| ---------- | -------------- | ---------------- |
+| 组件文件   | PascalCase     | `DishCard.vue`   |
+| 视图文件   | PascalCase     | `HomePage.vue`   |
+| 组合式函数 | use + Pascal   | `useApi.ts`      |
+| Store      | camelCase      | `dishes.ts`      |
+| API 模块   | camelCase      | `dishes.ts`      |
+| 类型文件   | index.ts       | `types/index.ts` |
+| 变量       | camelCase      | `dishList`       |
+| 方法       | handle + camel | `handleDelete`   |
 
 ## 样式规范
 
-- 使用 `<style scoped lang="scss">`
+- 使用 `<style scoped>`
 - CSS 类名使用小写 + 连字符（如 `dish-card`）
 - 移动端优先，使用 Vant 4 的响应式和适配能力
 - 图片使用 `browser-image-compression` 压缩后上传
