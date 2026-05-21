@@ -72,6 +72,12 @@ app.get('/:id', async c => {
 /** 订单列表（管理员，支持按状态筛选） */
 app.get('/', adminAuth, async c => {
   const db = c.env.DB;
+
+  // 自动拒绝超过 24 小时未接单的订单
+  await db.prepare(
+    `UPDATE orders SET status = 3, reject_reason = '超时未接单，系统自动拒绝', updated_at = datetime('now') WHERE status = 0 AND created_at < datetime('now', '-24 hours')`
+  ).run();
+
   const status = c.req.query('status');
 
   let query = 'SELECT * FROM orders';
