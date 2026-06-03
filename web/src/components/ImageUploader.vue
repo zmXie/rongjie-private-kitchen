@@ -1,6 +1,13 @@
 <template>
   <div class="image-uploader">
-    <input ref="fileInput" type="file" accept="image/*" style="display: none" :disabled="loading" @change="handleFileChange" />
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/*"
+      class="hidden-input"
+      :disabled="loading"
+      @change="handleFileChange"
+    />
     <div
       v-if="!previewUrl && !localPreviewUrl"
       class="upload-placeholder"
@@ -75,6 +82,9 @@ async function handleFileChange(e: Event) {
   const target = e.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
+
+  // 重置 input value，确保再次选择同一文件时也能触发 change 事件
+  target.value = '';
 
   // Check file type
   if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
@@ -181,5 +191,13 @@ async function handleFileChange(e: Event) {
   justify-content: center;
   font-size: 14px;
   cursor: pointer;
+}
+
+.hidden-input {
+  position: absolute;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
 </style>
